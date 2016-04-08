@@ -95,12 +95,14 @@ class DuplicateImagesDelete extends DuplicateImagesBaseForm {
    * @param array $selected_managed_file_deletes
    * @param array $selected_file_deletes
    *
-   * @return bool[]
-   *   array[file_name => bool|string] (success)
+   * @return array
+   *   array[file_name => bool|fid] (success)
    */
   public function exec(array $selected_managed_file_deletes, array $selected_file_deletes) {
-    $results = $this->delete_managed_files($selected_managed_file_deletes);
-    $results = array_merge($results, $this->delete_files($selected_file_deletes));
+    $results = array_merge(
+      $this->delete_managed_files($selected_managed_file_deletes),
+      $this->delete_files($selected_file_deletes)
+    );
     return $results;
   }
 
@@ -135,8 +137,8 @@ class DuplicateImagesDelete extends DuplicateImagesBaseForm {
    * 
    * @param string[] $file_deletes
    *
-   * @return array
-   *   array[file_name => bool|int] (success)
+   * @return bool[]
+   *   array[file_name => bool] (success)
    */
   protected function delete_files(array $file_deletes) {
     $results = array();

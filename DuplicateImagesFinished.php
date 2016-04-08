@@ -36,7 +36,7 @@ class DuplicateImagesFinished extends DuplicateImagesBaseForm {
       else if ($delete_result === FALSE) {
         $failures[] = t('%file_name: failed to delete.', array('%file_name' => $file_name));
       }
-      else { // $delete_result = int: fid of managed file delete failure.
+      else { // $delete_result = fid of managed file delete failure (int).
         $failures[] = t('%file_name: failed to delete managed file %fid.', array('%file_name' => $file_name, '%fid' => $delete_result));
       }
     }
