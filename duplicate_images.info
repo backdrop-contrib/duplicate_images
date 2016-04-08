@@ -1,0 +1,15 @@
+name = "Duplicate Images"
+description = "Finds and removes duplicate images."
+core = 7.x
+
+dependencies[] = file
+dependencies[] = image (>7.20)
+dependencies[] = entity
+
+files[] = DuplicateImagesBaseForm.php
+files[] = DuplicateImagesIntro.php
+files[] = DuplicateImagesSearch.php
+files[] = DuplicateImagesUsages.php
+files[] = DuplicateImagesUpdate.php
+files[] = DuplicateImagesDelete.php
+files[] = DuplicateImagesFinished.php

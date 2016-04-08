@@ -1,0 +1,96 @@
+<?php
+
+/**
+ * Implements hook_permission().
+ */
+function duplicate_images_permission() {
+  return array(
+    'use duplicate images' => array(
+      'title' => t('Use the duplicate images module'),
+      'description' => t('Run the find and remove duplicate images forms.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function duplicate_images_menu() {
+  $items = array();
+  $items['admin/config/media/duplicate-images'] = array(
+    'title' => 'Duplicate Images',
+    'description' => 'Find and remove duplicate images',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('duplicate_images_get_form'),
+    'access arguments' => array('use duplicate images'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  return $items;
+}
+
+/**
+ * Returns the current step based on the request query.
+ *
+ * @return string
+ */
+function duplicate_images_get_step() {
+  return isset($_GET['op']) ? $_GET['op'] : 'intro';
+}
+
+/**
+ * Callback for drupal_get_form() that builds the Duplicate Images form.
+ *
+ * @param array[] $form
+ * @param array $form_state
+ *
+ * @return array[]
+ *   The form.
+ */
+function duplicate_images_get_form(array $form, array &$form_state) {
+  $step = duplicate_images_get_step();
+  $formClass = duplicate_images_get_form_class($step);
+  $form = $formClass->fields($form, $form_state);
+  return $form;
+}
+
+/**
+ * Callback for drupal_get_form() that builds the Duplicate Images form.
+ *
+ * On submit we have to execute the submit handler of the previous step. This
+ * way we could keep the fields and processing of it together in 1 class.
+ *
+ * @param array $form
+ *   The form.
+ * @param array $form_state
+ *   The form state. Passed by reference, thus can be used to store intermediate
+ *   results.
+ */
+function duplicate_images_get_form_submit(array $form, array &$form_state) {
+  $step = DuplicateImagesBaseForm::getPrev(duplicate_images_get_step());
+  $formClass = duplicate_images_get_form_class($step);
+  $formClass->submit($form, $form_state);
+}
+
+/**
+ * Creates the form class for the given step. 
+ *
+ * @param string $step
+ *
+ * @return DuplicateImagesBaseForm
+ *
+ * @throws InvalidArgumentException
+ */
+function duplicate_images_get_form_class($step) {
+  static $classes = array();
+  
+  if (!isset($classes[$step])) {
+    $steps = DuplicateImagesBaseForm::getSteps();
+    if (!array_key_exists($step, $steps)) {
+      // Oops, don't play with us.
+      throw new InvalidArgumentException("Unknown operation");
+    }
+    $class = 'DuplicateImages' . ucfirst($step);
+    $classes[$step] = new $class();
+  }
+  return $classes[$step];
+}
