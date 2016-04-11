@@ -88,7 +88,7 @@ class DuplicateImagesSearch extends DuplicateImagesBaseForm {
 
     $large_styles = array(
       '' => t('Do not make a link of the thumbnail'),
-      'full image' => t('Link to full image')
+      'full image' => t('Link to full image'),
     ) + $image_styles;
     $large_style = array_key_exists('large', $image_styles) ? 'large' : 'full image';
 
@@ -172,6 +172,8 @@ class DuplicateImagesSearch extends DuplicateImagesBaseForm {
   }
 
   /**
+   * Recursively searches for duplicate images.
+   *
    * @param string $folder
    * @param string[] $excluded_sub_folders
    * @param bool $use_md5

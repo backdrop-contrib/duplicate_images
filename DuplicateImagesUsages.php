@@ -328,7 +328,6 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
     }
   }
 
-  /** @noinspection PhpDocSignatureInspection */
   /**
    * Find the entities referring to this managed file.
    *
@@ -340,7 +339,7 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
    * @param object $managed_duplicate
    * @param int $original_fid
    */
-  protected function findUsagesOfManagedFile(stdClass $managed_duplicate, $original_fid) {
+  protected function findUsagesOfManagedFile($managed_duplicate, $original_fid) {
     $this->findUsagesByUserPicture($managed_duplicate->fid, $original_fid, $managed_duplicate->uri);
     foreach ($this->getFieldsReferringToManagedFiles() as $field) {
       $this->findUsagesByField($field, TRUE, $managed_duplicate->fid, $original_fid, array());
@@ -627,8 +626,7 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
   }
 
   /**
-   * Returns a list of fields types that may contain textual references to image
-   * URIs.
+   * Returns a list of field types that may contain image URIs in text.
    *
    * @return array
    *   Array of field type labels that are keyed by the machine name of the
@@ -695,7 +693,13 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
       else {
         $link_path = image_style_url($large_style, $file_name);
       }
-      $result = l($result, $link_path, array('html' => TRUE, 'attributes' => array('class' => array('colorbox'), 'rel' => "gallery-all-$i")));
+      $result = l($result, $link_path, array(
+        'html' => TRUE,
+        'attributes' => array(
+          'class' => array('colorbox'),
+          'rel' => "gallery-all-$i",
+        ),
+      ));
     }
     return $result;
   }

@@ -42,6 +42,8 @@ class DuplicateImagesUpdate extends DuplicateImagesBaseForm {
     $duplicate_references = $form_state['duplicate_references'];
     $duplicate_managed_files = $form_state['duplicate_managed_files'];
     $updates = array();
+    $fieldsLabel = t('field(s): ');
+    $duplicatesLabel = t('duplicate(s) referred: ');
     foreach ($update_instructions as $entity_type => $entities) {
       foreach ($entities as $entity_id => $entity) {
         $fields = implode(', ', array_keys($entity));
@@ -52,8 +54,8 @@ class DuplicateImagesUpdate extends DuplicateImagesBaseForm {
           $duplicates = $duplicate_managed_files[$entity_id];
         }
         $updates["$entity_type $entity_id"] = "$entity_type $entity_id:<br>"
-          . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . t('field(s): ') . $fields . '<br>'
-          . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . t('duplicate(s) referred: ') . $duplicates;
+          . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . $fieldsLabel . $fields . '<br>'
+          . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . $duplicatesLabel . $duplicates;
       }
     }
 
