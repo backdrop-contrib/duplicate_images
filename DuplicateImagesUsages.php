@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Class DuplicateImagesUsages
+ * Contains the form definition and processing for the find usages step.
  */
 class DuplicateImagesUsages extends DuplicateImagesBaseForm {
 
@@ -27,7 +27,10 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
    */
   protected $duplicateManagedFiles = array();
 
-  /** @var array List of fids of the original images keyed by file name. */
+  /**
+   * @var array
+   *   List of fids of the original images keyed by file name.
+   */
   protected $originalIds = array();
 
   /**
@@ -37,7 +40,10 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
    */
   protected $fieldsReferringManagedFiles = NULL;
 
-  /** @var array[] */
+  /**
+   * @var array[]
+   *   Contains information about the local stream wrappers public and private.
+   */
   protected $stream_info;
 
   /**
@@ -51,7 +57,10 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
    * {@inheritdoc}
    */
   protected function getHelp() {
-    return t('Find usages') . ': ' . t('Defines where to look for the found duplicate images are used. The result will be a list of usages of the duplicates.');
+    return t('!step: !help', array(
+      '!step' => t('Find usages'),
+      '!help' => t('Defines where to look for the found duplicate images are used. The result will be a list of usages of the duplicates.')
+    ));
   }
 
   /**
@@ -187,7 +196,7 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
    *   and update references other managed duplicates to refer to the updated
    *   managed duplicate.
    *
-   * Textual references
+   * Textual references:
    * These will appear in value columns of fields. These references will have to
    * be replaced with references to the original.
    *
@@ -200,13 +209,22 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
    *   List of duplicate => original pairs.
    * @param array[] $suspicious_images
    *   List of suspicious info arrays (array with keys: duplicate, original,
-   *   reason) keyed by file name.
+   *   reason) keyed by duplicate file name.
    * @param bool $managed_files
+   *   Also search through managed files?
    * @param string[] $field_names
+   *   List of field names to search through.
    * @param string[] $image_styles
+   *   List of image styles to search for referencing URIs.
    *
    * @return array[]
-   *   Array with update and replacement instructions.
+   *   3 arrays:
+   *   - Update instructions. Multi dimensional array keyed by entity type,
+   *     entity id, field/property name, [language, delta, and column name] and
+   *     the new value or a list of replacements as value.
+   *   - List of entities referring to the duplicates. 2-dimensional array
+   *     keyed by entity type and id
+   *   - List of fid => duplicate pairs.
    */
   public function exec(array $duplicate_images, array $suspicious_images, $managed_files, array $field_names, array $image_styles) {
     $this->initStreamInfo();
@@ -263,7 +281,7 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
    */
   protected function findUsagesAsManagedFile($duplicate, $original) {
     // Find the managed file object (at most 1 object as 'uri' is unique) for
-    // the duplicate
+    // the duplicate.
     $managed_duplicate = file_load_multiple(array(), array('uri' => $duplicate));
     $managed_duplicate = reset($managed_duplicate);
     if ($managed_duplicate !== FALSE) {
@@ -285,14 +303,14 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
         $this->findUsagesOfManagedFile($managed_duplicate, $this->originalIds[$original]);
       }
       else {
-        // The $duplicate_of image has not yet been registered as a managed
-        // file. We will update the uri field of the $managed_duplicate record
-        // to point to $duplicate_of.
+        // The $original has not yet been registered as a managed file. We will
+        // update the uri field of the $managed_duplicate record to point to
+        // $original.
+        // This also means that references to the fid of this record can remain
+        // unchanged. So no need to add updates instructions for file/image
+        // fields for this fid.
         $this->updateInstructions['file'][$managed_duplicate->fid]['uri'] = $original;
         $this->duplicateReferences['file'][$managed_duplicate->fid][$duplicate] = $duplicate;
-
-        // But references to the fid of this record can remain unchanged. Thus
-        // no need to add updates for file/image fields for this fid.
 
         // To prevent updating the uri of other duplicates to the same
         // $original, we register the fid of this duplicate as the fid for the
@@ -310,10 +328,10 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
    *
    * Update instructions are added to $this->usage.
    *
-   * @param Object $managed_duplicate
+   * @param stdClass $managed_duplicate
    * @param int $original_fid
    */
-  protected function findUsagesOfManagedFile($managed_duplicate, $original_fid) {
+  protected function findUsagesOfManagedFile(stdClass $managed_duplicate, $original_fid) {
     $this->findUsagesByUserPicture($managed_duplicate->fid, $original_fid, $managed_duplicate->uri);
     foreach ($this->getFieldsReferringToManagedFiles() as $field) {
       $this->findUsagesByField($field, TRUE, $managed_duplicate->fid, $original_fid, array());
@@ -388,9 +406,9 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
         /** @noinspection PhpUndefinedVariableInspection */
         if ($is_image) {
           foreach ($image_styles as $style_name) {
-            /** @noinspection PhpUndefinedVariableInspection */
+            /* @noinspection PhpUndefinedVariableInspection */
             $duplicate_style_uri = $base_url . 'styles/' . $style_name . '/' . $scheme . '/' . $duplicate_target;
-            /** @noinspection PhpUndefinedVariableInspection */
+            /* @noinspection PhpUndefinedVariableInspection */
             $original_style_uri = $base_url . 'styles/' . $style_name . '/' . $scheme . '/' . $original_target;
 
             $itok_duplicate = image_style_path_token($style_name, $duplicate);

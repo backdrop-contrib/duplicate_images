@@ -1,6 +1,10 @@
 <?php
 
 /**
+ * @file Contains the modules hooks and main functions.
+ */
+
+/**
  * Implements hook_permission().
  */
 function duplicate_images_permission() {
@@ -48,8 +52,8 @@ function duplicate_images_get_step() {
  */
 function duplicate_images_get_form(array $form, array &$form_state) {
   $step = duplicate_images_get_step();
-  $formClass = duplicate_images_get_form_class($step);
-  $form = $formClass->fields($form, $form_state);
+  $form_class = duplicate_images_get_form_class($step);
+  $form = $form_class->fields($form, $form_state);
   return $form;
 }
 
@@ -67,12 +71,12 @@ function duplicate_images_get_form(array $form, array &$form_state) {
  */
 function duplicate_images_get_form_submit(array $form, array &$form_state) {
   $step = DuplicateImagesBaseForm::getPrev(duplicate_images_get_step());
-  $formClass = duplicate_images_get_form_class($step);
-  $formClass->submit($form, $form_state);
+  $form_class = duplicate_images_get_form_class($step);
+  $form_class->submit($form, $form_state);
 }
 
 /**
- * Creates the form class for the given step. 
+ * Creates the form class for the given step.
  *
  * @param string $step
  *
@@ -82,7 +86,7 @@ function duplicate_images_get_form_submit(array $form, array &$form_state) {
  */
 function duplicate_images_get_form_class($step) {
   static $classes = array();
-  
+
   if (!isset($classes[$step])) {
     $steps = DuplicateImagesBaseForm::getSteps();
     if (!array_key_exists($step, $steps)) {

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Class DuplicateImagesFinished
+ * Contains the form definition for the last (purely informational) step.
  */
 class DuplicateImagesFinished extends DuplicateImagesBaseForm {
 
@@ -33,10 +33,11 @@ class DuplicateImagesFinished extends DuplicateImagesBaseForm {
       if ($delete_result === TRUE) {
         $success[] = $file_name;
       }
-      else if ($delete_result === FALSE) {
+      elseif ($delete_result === FALSE) {
         $failures[] = t('%file_name: failed to delete.', array('%file_name' => $file_name));
       }
-      else { // $delete_result = fid of managed file delete failure (int).
+      else {
+        // $delete_result = fid of managed file delete failure (int).
         $failures[] = t('%file_name: failed to delete managed file %fid.', array('%file_name' => $file_name, '%fid' => $delete_result));
       }
     }

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Class DuplicateImagesSearch
+ * Contains the form definition and processing for the search duplicates step.
  */
 class DuplicateImagesSearch extends DuplicateImagesBaseForm {
 
@@ -22,7 +22,10 @@ class DuplicateImagesSearch extends DuplicateImagesBaseForm {
    * {@inheritdoc}
    */
   protected function getHelp() {
-    return t('Search duplicates') . ': ' . t('Defines and restricts the search for duplicate images. The result will be a list of sets of duplicate images. Duplicate images are found by looking at their file name, file size and md5 hash. When you upload a duplicate image, Drupal will append an underscore and a sequence number to the base name of the file. So the 1st check on file name is to check for this pattern.');
+    return t('!step: !help', array(
+      '!step' => t('Search duplicates'),
+      '!help' => t('Defines and restricts the search for duplicate images. The result will be a list of sets of duplicate images. Duplicate images are found by looking at their file name, file size and md5 hash. When you upload a duplicate image, Drupal will append an underscore and a sequence number to the base name of the file. So the 1st check on file name is to check for this pattern.')
+    ));
   }
 
   /**
@@ -44,7 +47,7 @@ class DuplicateImagesSearch extends DuplicateImagesBaseForm {
       '#title' => t('File systems to search'),
       '#options' => array(
         'public://' => 'public://',
-        'private://' => 'private://'
+        'private://' => 'private://',
       ),
       '#default_value' => array('public://'),
       '#description' => t('Indicate which file systems to search for duplicates.'),
@@ -80,9 +83,9 @@ class DuplicateImagesSearch extends DuplicateImagesBaseForm {
     $thumbnail_style = array_key_exists('thumbnail', $image_styles) ? 'thumbnail' : '';
 
     $large_styles = array(
-        '' => t('Do not make a link of the thumbnail'),
-        'full image' => t('Link to full image'),
-      ) + $image_styles;
+      '' => t('Do not make a link of the thumbnail'),
+      'full image' => t('Link to full image')
+    ) + $image_styles;
     $large_style = array_key_exists('large', $image_styles) ? 'large' : 'full image';
 
     $form['options']['thumbnail_style'] = array(
@@ -138,12 +141,17 @@ class DuplicateImagesSearch extends DuplicateImagesBaseForm {
   }
 
   /**
+   * Executes the find duplicates step.
+   *
    * @param string[] $file_systems
    * @param string[] $excluded_sub_folders
    * @param bool $use_md5
    * @param int|null $max_images
    *
-   * @return string[][]
+   * @return array[]
+   *   2 arrays:
+   *   - array with $duplicate => $original string pairs
+   *   - array with $suspicious => array with keys duplicate, original, reason.
    */
   public function exec(array $file_systems, array $excluded_sub_folders, $use_md5, $max_images) {
     foreach ($file_systems as $file_system) {
@@ -181,13 +189,13 @@ class DuplicateImagesSearch extends DuplicateImagesBaseForm {
       }
       else {
         if (is_dir($folder . $file)) {
-          // Folder: skip if it is an excluded sub folder
+          // Folder: skip if it is an excluded sub folder.
           if (!in_array($file, $excluded_sub_folders)) {
             $dirs[] = $folder . $file;
           }
         }
         else {
-          // File: process
+          // File: process.
           $files[] = $file;
         }
       }

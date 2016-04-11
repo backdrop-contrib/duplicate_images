@@ -1,7 +1,9 @@
 <?php
 
 /**
- * Class DuplicateImagesBaseForm
+ * Class DuplicateImagesBaseForm defines:
+ * - Some base methods for the other form classes.
+ * - Some static methods used by the form wizard code in the .module file.
  */
 abstract class DuplicateImagesBaseForm {
   /** @var string */
@@ -104,8 +106,8 @@ abstract class DuplicateImagesBaseForm {
    *
    * @param string $step
    *
-   * @return string The next step, or the empty string if this is the last step.
-   * The next step, or the empty string if this is the last step.
+   * @return string
+   *   The next step, or the empty string if this is the last step.
    */
   static public function getPrev($step) {
     $steps = array_keys(static::getSteps());

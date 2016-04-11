@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Class DuplicateImagesDelete
+ * Contains the form definition and processing for the delete step.
  */
 class DuplicateImagesDelete extends DuplicateImagesBaseForm {
 
@@ -16,7 +16,10 @@ class DuplicateImagesDelete extends DuplicateImagesBaseForm {
    * {@inheritdoc}
    */
   protected function getHelp() {
-    return t('Delete duplicates') . ': ' . t('Now that the duplicates are no longer referred to, this step can safely delete them, both as managed file entity and as file on the file system.');
+    return t('!step: !help', array(
+      '!step' => t('Delete duplicates'),
+      '!help' => t('Now that the duplicates are no longer referred to, this step can safely delete them, both as managed file entity and as file on the file system.')
+    ));
   }
 
   /**
@@ -73,7 +76,7 @@ class DuplicateImagesDelete extends DuplicateImagesBaseForm {
       '#default_value' => array_keys($file_deletes),
       '#description' => t('These are the non managed files that can be deleted.'),
     );
-    
+
     return $form;
   }
 
@@ -100,8 +103,8 @@ class DuplicateImagesDelete extends DuplicateImagesBaseForm {
    */
   public function exec(array $selected_managed_file_deletes, array $selected_file_deletes) {
     $results = array_merge(
-      $this->delete_managed_files($selected_managed_file_deletes),
-      $this->delete_files($selected_file_deletes)
+      $this->deleteManagedFiles($selected_managed_file_deletes),
+      $this->deleteFiles($selected_file_deletes)
     );
     return $results;
   }
@@ -115,15 +118,15 @@ class DuplicateImagesDelete extends DuplicateImagesBaseForm {
    * @return array
    *   array[file_name => fid|true] list of results.
    */
-  protected function delete_managed_files(array $selected_managed_file_deletes) {
+  protected function deleteManagedFiles(array $selected_managed_file_deletes) {
     $results = array();
     $managed_files = file_load_multiple(array_keys($selected_managed_file_deletes));
     foreach ($managed_files as $managed_file) {
-      // imce may have set a "usage" that may prevent us from deleting it: force
+      // Imce may have set a "usage" that may prevent us from deleting it: force
       // the delete.
       if (file_delete($managed_file, TRUE) === TRUE) {
         $results[$managed_file->uri] = TRUE;
-        $this->delete_derivatives($managed_file->uri);
+        $this->deleteDerivatives($managed_file->uri);
       }
       else {
         $results[$managed_file->uri] = $managed_file->fid;
@@ -134,16 +137,16 @@ class DuplicateImagesDelete extends DuplicateImagesBaseForm {
 
   /**
    * Deletes a set of files and their possible image style derivatives.
-   * 
+   *
    * @param string[] $file_deletes
    *
    * @return bool[]
    *   array[file_name => bool] (success)
    */
-  protected function delete_files(array $file_deletes) {
+  protected function deleteFiles(array $file_deletes) {
     $results = array();
     foreach ($file_deletes as $file_name) {
-      $results[$file_name] = $this->delete_file($file_name);
+      $results[$file_name] = $this->deleteFile($file_name);
     }
     return $results;
   }
@@ -156,8 +159,8 @@ class DuplicateImagesDelete extends DuplicateImagesBaseForm {
    * @return bool
    *   true on success, false on failure.
    */
-  protected function delete_file($file_name) {
-    $this->delete_derivatives($file_name);
+  protected function deleteFile($file_name) {
+    $this->deleteDerivatives($file_name);
     return drupal_unlink($file_name);
   }
 
@@ -166,7 +169,7 @@ class DuplicateImagesDelete extends DuplicateImagesBaseForm {
    *
    * @param string $file_name
    */
-  protected function delete_derivatives($file_name) {
+  protected function deleteDerivatives($file_name) {
     $image_styles = image_styles();
     foreach ($image_styles as $image_style) {
       $derivative = image_style_path($image_style['name'], $file_name);

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Class DuplicateImagesUpdate
+ * Contains the form definition and processing for the update references step.
  */
 class DuplicateImagesUpdate extends DuplicateImagesBaseForm {
 
@@ -16,7 +16,10 @@ class DuplicateImagesUpdate extends DuplicateImagesBaseForm {
    * {@inheritdoc}
    */
   protected function getHelp() {
-    return t('Update usages') . ': ' . t('Updates the found usages to use the original image. The result will be that duplicate images are no longer referred to. Updates are done using the function entity_save(), so caches should be cleared, file usage updated, rules executed, etc.');
+    return t('!step: !help', array(
+      '!step' => t('Update usages'),
+      '!help' => t('Updates the found usages to use the original image. The result will be that duplicate images are no longer referred to. Updates are done using the function entity_save(), so caches should be cleared, file usage updated, rules executed, etc.')
+    ));
   }
 
   /**
@@ -71,41 +74,43 @@ class DuplicateImagesUpdate extends DuplicateImagesBaseForm {
 
     $form_state['selected_entities_to_update'] = array_filter($form_state['values']['entities_to_update']);
     $entity_update_instructions = $form_state['entity_update_instructions'];
-    $entitiesToUpdate = array();
+    $entities_to_update = array();
     foreach ($entity_update_instructions as $entity_type => $entities) {
       foreach ($entities as $entity_id => $entity) {
         if (array_key_exists("$entity_type $entity_id", $form_state['selected_entities_to_update'])) {
-          $entitiesToUpdate[$entity_type][$entity_id] = $entity;
+          $entities_to_update[$entity_type][$entity_id] = $entity;
         }
         else {
-          
+
         }
       }
     }
-    $form_state['updates_performed'] = $this->exec($entitiesToUpdate);
+    $form_state['updates_performed'] = $this->exec($entities_to_update);
   }
 
   /**
-   * Updates the entities per the "instructions"
+   * Updates the entities per the "instructions".
    *
-   * @param array[] $entitiesToUpdate
-   *  A multidimensional array containing a list of entity update instructions.
-   *  These are keyed by entity type and entity id.
-   * 
-   *  The instructions are also multidimensional arrays keyed by field name,
-   *  delta and language and then containing the new value or a list of
-   *  replacements to make 
-   * 
-   *  File entities do not have cardinality nor are translatable, so there the
-   *  keys delta and language are not available, not can the values be a list of
-   *  replacements.
+   * @param array[] $entities_to_update
+   *   A multidimensional array containing a list of entity update instructions.
+   *   These are keyed by entity type and entity id.
    *
-   * @return array[]
+   *   The instructions are also multidimensional arrays keyed by field name,
+   *   delta and language and then containing the new value or a list of
+   *   replacements to make.
+   *
+   *   File entities do not have cardinality nor are translatable, so there, the
+   *   keys delta and language are not available, nor can the values be a list
+   *   of replacements.
+   *
+   * @return bool[]
+   *   A keyed array with the results of the performed updates keyed by
+   *   "$entity_type $entity_id".
    */
-  public function exec(array $entitiesToUpdate) {
+  public function exec(array $entities_to_update) {
     $result = array();
 
-    foreach ($entitiesToUpdate as $entity_type => $entityUpdates) {
+    foreach ($entities_to_update as $entity_type => $entityUpdates) {
       $entities = entity_load($entity_type, array_keys($entityUpdates));
       foreach ($entityUpdates as $entity_id => $field_updates) {
         $result["$entity_type $entity_id"] = $this->updateEntity($entity_type, $entities[$entity_id], $field_updates);
