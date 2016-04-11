@@ -1,7 +1,9 @@
 <?php
 
 /**
- * Contains the form definition for the last (purely informational) step.
+ * @file
+ * Class DuplicateImagesFinished contains the form definition for the last
+ * (purely informational) step.
  */
 class DuplicateImagesFinished extends DuplicateImagesBaseForm {
 
@@ -46,14 +48,14 @@ class DuplicateImagesFinished extends DuplicateImagesBaseForm {
       $success = '<ul><li>' . implode('</li><li>', $success) . '</li></ul>';
       $form['success'] = array(
         '#type' => 'markup',
-        '#markup' => '<p>' . t('The following files were deleted successfully:') . '</p>' . $success,
+        '#markup' => t('<p>The following files were deleted successfully:</p>') . $success,
       );
     }
     if (!empty($failures)) {
       $failures = '<ul><li>' . implode('</li><li>', $failures) . '</li></ul>';
       $form['failures'] = array(
         '#type' => 'markup',
-        '#markup' => '<p>' . t('The following files could not be deleted:') . '</p>' . $failures,
+        '#markup' => t('<p>The following files could not be deleted:</p>') . $failures,
       );
     }
 

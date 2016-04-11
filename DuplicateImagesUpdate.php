@@ -1,7 +1,9 @@
 <?php
 
 /**
- * Contains the form definition and processing for the update references step.
+ * @file
+ * Class DuplicateImagesUpdate contains the form definition and processing for
+ * the update references step.
  */
 class DuplicateImagesUpdate extends DuplicateImagesBaseForm {
 
@@ -18,7 +20,7 @@ class DuplicateImagesUpdate extends DuplicateImagesBaseForm {
   protected function getHelp() {
     return t('!step: !help', array(
       '!step' => t('Update usages'),
-      '!help' => t('Updates the found usages to use the original image. The result will be that duplicate images are no longer referred to. Updates are done using the function entity_save(), so caches should be cleared, file usage updated, rules executed, etc.')
+      '!help' => t('Updates the found usages to use the original image. The result will be that duplicate images are no longer referred to. Updates are done using the function entity_save(), so caches should be cleared, file usage updated, rules executed, etc.'),
     ));
   }
 
@@ -57,7 +59,7 @@ class DuplicateImagesUpdate extends DuplicateImagesBaseForm {
 
     $form['results']['entities_to_update'] = array(
       '#type' => 'checkboxes',
-      '#title' => t('Updates') . ' (' . count($updates) . ')',
+      '#title' => t('Updates (@count)', array('@count' => count($updates))),
       '#options' => $updates,
       '#default_value' => array_keys($updates),
       '#description' => t('These are the entities that need to be updated to remove all references to the selected duplicate images.'),
@@ -110,9 +112,9 @@ class DuplicateImagesUpdate extends DuplicateImagesBaseForm {
   public function exec(array $entities_to_update) {
     $result = array();
 
-    foreach ($entities_to_update as $entity_type => $entityUpdates) {
-      $entities = entity_load($entity_type, array_keys($entityUpdates));
-      foreach ($entityUpdates as $entity_id => $field_updates) {
+    foreach ($entities_to_update as $entity_type => $entity_updates) {
+      $entities = entity_load($entity_type, array_keys($entity_updates));
+      foreach ($entity_updates as $entity_id => $field_updates) {
         $result["$entity_type $entity_id"] = $this->updateEntity($entity_type, $entities[$entity_id], $field_updates);
 
         // Try to prevent time-outs by restarting the timer.

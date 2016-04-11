@@ -1,12 +1,15 @@
 <?php
 
 /**
+ * @file
  * Class DuplicateImagesBaseForm defines:
  * - Some base methods for the other form classes.
  * - Some static methods used by the form wizard code in the .module file.
  */
 abstract class DuplicateImagesBaseForm {
-  /** @var string */
+  /**
+   * @var string
+   */
   protected $step = '';
 
   /**
@@ -76,8 +79,6 @@ abstract class DuplicateImagesBaseForm {
    *
    * @param array[] $form
    * @param array $form_state
-   *
-   * @return array[]
    */
   public function submit(/** @noinspection PhpUnusedParameterInspection */ array $form, array &$form_state) {
     $form_state['rebuild'] = TRUE;

@@ -1,14 +1,20 @@
 <?php
 
 /**
- * Contains the form definition and processing for the search duplicates step.
+ * @file
+ * Class DuplicateImagesSearch contains the form definition and processing for
+ * the search duplicates step.
  */
 class DuplicateImagesSearch extends DuplicateImagesBaseForm {
 
-  /** @var string[] */
+  /**
+   * @var string[]
+   */
   protected $duplicates = array();
 
-  /** @var string[] */
+  /**
+   * @var string[]
+   */
   protected $suspicious = array();
 
   /**
@@ -24,7 +30,7 @@ class DuplicateImagesSearch extends DuplicateImagesBaseForm {
   protected function getHelp() {
     return t('!step: !help', array(
       '!step' => t('Search duplicates'),
-      '!help' => t('Defines and restricts the search for duplicate images. The result will be a list of sets of duplicate images. Duplicate images are found by looking at their file name, file size and md5 hash. When you upload a duplicate image, Drupal will append an underscore and a sequence number to the base name of the file. So the 1st check on file name is to check for this pattern.')
+      '!help' => t('Defines and restricts the search for duplicate images. The result will be a list of sets of duplicate images. Duplicate images are found by looking at their file name, file size and md5 hash. When you upload a duplicate image, Drupal will append an underscore and a sequence number to the base name of the file. So the 1st check on file name is to check for this pattern.'),
     ));
   }
 
@@ -77,9 +83,7 @@ class DuplicateImagesSearch extends DuplicateImagesBaseForm {
     foreach (image_styles() as $image_style) {
       $image_styles[$image_style['name']] = $image_style['label'];
     }
-    $thumbnail_styles = array(
-      '' => t('Do not show thumbnails'),
-    ) + $image_styles;
+    $thumbnail_styles = array('' => t('Do not show thumbnails')) + $image_styles;
     $thumbnail_style = array_key_exists('thumbnail', $image_styles) ? 'thumbnail' : '';
 
     $large_styles = array(
@@ -292,4 +296,5 @@ class DuplicateImagesSearch extends DuplicateImagesBaseForm {
     }
     return $result;
   }
+
 }

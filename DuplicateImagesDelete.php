@@ -1,7 +1,9 @@
 <?php
 
 /**
- * Contains the form definition and processing for the delete step.
+ * @file
+ * Class DuplicateImagesDelete contains the form definition and processing for
+ * the delete duplicate images step.
  */
 class DuplicateImagesDelete extends DuplicateImagesBaseForm {
 
@@ -18,7 +20,7 @@ class DuplicateImagesDelete extends DuplicateImagesBaseForm {
   protected function getHelp() {
     return t('!step: !help', array(
       '!step' => t('Delete duplicates'),
-      '!help' => t('Now that the duplicates are no longer referred to, this step can safely delete them, both as managed file entity and as file on the file system.')
+      '!help' => t('Now that the duplicates are no longer referred to, this step can safely delete them, both as managed file entity and as file on the file system.'),
     ));
   }
 
@@ -64,7 +66,7 @@ class DuplicateImagesDelete extends DuplicateImagesBaseForm {
 
     $form['options']['managed_file_deletes'] = array(
       '#type' => 'checkboxes',
-      '#title' => t('Managed files') . ' (' . count($managed_file_deletes) . ')',
+      '#title' => t('Managed files (@count)', array('@count' => count($managed_file_deletes))),
       '#options' => $managed_file_deletes,
       '#default_value' => array_keys($managed_file_deletes),
       '#description' => t('These are the managed files that can be deleted.'),

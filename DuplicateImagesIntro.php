@@ -1,7 +1,9 @@
 <?php
 
 /**
- * Contains the form definition for the first (purely informational) step.
+ * @file
+ * Class DuplicateImagesIntro contains the form definition for the first (purely
+ * informational) step.
  */
 class DuplicateImagesIntro extends DuplicateImagesBaseForm {
 

@@ -1,50 +1,58 @@
 <?php
 
 /**
- * Contains the form definition and processing for the find usages step.
+ * @file
+ * Class DuplicateImagesUsages contains the form definition and processing for
+ * the find usages step.
  */
 class DuplicateImagesUsages extends DuplicateImagesBaseForm {
 
   /**
+   * The list of usages found. The format is such that it allows us to update
+   * these usages to refer to the original image.
+   *
    * @var array[]
-   *   The list of usages found. The format is such that it allows us to update
-   *   these usages to refer to the original image.
    */
   protected $updateInstructions = array();
 
   /**
+   * The list of references to duplicates keyed by entity type and id. This
+   * allows us to not delete duplicates if not all referring entities were
+   * correctly updated.
+   *
    * @var array[]
-   *   The list of references to duplicates keyed by entity type and id. This
-   *   allows us to not delete duplicates if not all referring entities were
-   *   correctly updated.
    */
   protected $duplicateReferences = array();
 
   /**
+   * The list of managed files that refer to a duplicate and that may be
+   * deleted if all usages are correctly updated. Key: fid, value: duplicate.
+   *
    * @var string[]
-   *   The list of managed files that refer to a duplicate and that may be
-   *   deleted if all usages are correctly updated. Key: fid, value: duplicate.
    */
   protected $duplicateManagedFiles = array();
 
   /**
+   * List of fids of the original images keyed by file name.
+   *
    * @var array
-   *   List of fids of the original images keyed by file name.
    */
   protected $originalIds = array();
 
   /**
+   * An array with field names as key and the referring column in that field as
+   * value.
+   *
    * @var null|array[]
-   *   An array with field names as key and the referring column in that field
-   *   as value.
    */
   protected $fieldsReferringManagedFiles = NULL;
 
   /**
+   * Contains information about the local stream wrappers public and private.
+   *
    * @var array[]
-   *   Contains information about the local stream wrappers public and private.
    */
-  protected $stream_info;
+  protected $streamInfo;
 
   /**
    * {@inheritdoc}
@@ -59,7 +67,7 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
   protected function getHelp() {
     return t('!step: !help', array(
       '!step' => t('Find usages'),
-      '!help' => t('Defines where to look for the found duplicate images are used. The result will be a list of usages of the duplicates.')
+      '!help' => t('Defines where to look for the found duplicate images are used. The result will be a list of usages of the duplicates.'),
     ));
   }
 
@@ -83,7 +91,7 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
     }
     $form['results']['duplicate_images'] = array(
       '#type' => 'checkboxes',
-      '#title' => t('Duplicates found') . ' (' . count($duplicate_images) . ')',
+      '#title' => t('Duplicates found (@count)', array('@count' => count($duplicate_images))),
       '#options' => $duplicate_images,
       '#default_value' => array_keys($duplicate_images),
       '#description' => t('These are the duplicates found.'),
@@ -110,7 +118,7 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
     }
     $form['results']['suspicious_images'] = array(
       '#type' => 'checkboxes',
-      '#title' => t('Suspicious images found') . ' (' . count($suspicious_images) . ')',
+      '#title' => t('Suspicious images found (@count)', array('@count' => count($suspicious_images))),
       '#options' => $suspicious_images,
       '#default_value' => array(),
       '#description' => t('These are images that have the pattern to be a duplicate of another image but do differ for the indicated reason.'),
@@ -223,7 +231,7 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
    *     entity id, field/property name, [language, delta, and column name] and
    *     the new value or a list of replacements as value.
    *   - List of entities referring to the duplicates. 2-dimensional array
-   *     keyed by entity type and id
+   *     keyed by entity type and id.
    *   - List of fid => duplicate pairs.
    */
   public function exec(array $duplicate_images, array $suspicious_images, $managed_files, array $field_names, array $image_styles) {
@@ -246,7 +254,7 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
   }
 
   /**
-   * Find all usages of a duplicate
+   * Find all usages of a duplicate.
    *
    * For all usages found an update or replacement instruction is added to
    * $this->usage.
@@ -255,7 +263,7 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
    * @param string $original
    * @param bool $managed_files
    * @param array[] $fields
-   *   Array of field info arrays
+   *   Array of field info arrays.
    * @param string[] $image_styles
    */
   protected function findUsages($duplicate, $original, $managed_files, array $fields, array $image_styles) {
@@ -272,7 +280,7 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
   }
 
   /**
-   * Finds usages for the given duplicate
+   * Finds usages for the given duplicate.
    *
    * Update instructions are added to $this->usage.
    *
@@ -320,6 +328,7 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
     }
   }
 
+  /** @noinspection PhpDocSignatureInspection */
   /**
    * Find the entities referring to this managed file.
    *
@@ -328,7 +337,7 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
    *
    * Update instructions are added to $this->usage.
    *
-   * @param stdClass $managed_duplicate
+   * @param object $managed_duplicate
    * @param int $original_fid
    */
   protected function findUsagesOfManagedFile(stdClass $managed_duplicate, $original_fid) {
@@ -338,6 +347,13 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
     }
   }
 
+  /**
+   * Finds usages of a managed file in the user picture property.
+   *
+   * @param int $duplicate_fid
+   * @param int $original_fid
+   * @param string $duplicate
+   */
   protected function findUsagesByUserPicture($duplicate_fid, $original_fid, $duplicate) {
     $table_name = 'users';
     $uids = db_select($table_name)
@@ -375,7 +391,7 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
     if (!$exact) {
       /** @var DrupalLocalStreamWrapper $duplicate_stream */
       $scheme = file_uri_scheme($duplicate);
-      $base_url = $this->stream_info[$scheme]['base_url'];
+      $base_url = $this->streamInfo[$scheme]['base_url'];
       $duplicate_target = file_uri_target($duplicate);
       $duplicate_uri = $base_url . $duplicate_target;
       $original_target = file_uri_target($original);
@@ -492,18 +508,23 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
       case 'link_field':
         $result = array('url');
         break;
+
       case 'text':
         $result = array('value');
         break;
+
       case 'text_long':
         $result = array('value');
         break;
+
       case 'text_with_summary':
         $result = array('value', 'summary');
         break;
+
       default:
         $result = array('value');
         break;
+
     }
     return $result;
   }
@@ -521,7 +542,7 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
       $this->fieldsReferringManagedFiles = array();
       $fields = field_info_fields();
       foreach ($fields as $field) {
-        $column = $this->file_field_find_file_reference_column($field);
+        $column = $this->fileFieldFindFileReferenceColumn($field);
         if ($column !== FALSE) {
           $this->fieldsReferringManagedFiles[$field['field_name']] = $field;
           $this->fieldsReferringManagedFiles[$field['field_name']]['search_columns'] = array($column);
@@ -543,7 +564,7 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
    *   The field column if the field references {file_managed}.fid, typically
    *   fid, FALSE if it does not.
    */
-  protected function file_field_find_file_reference_column($field) {
+  protected function fileFieldFindFileReferenceColumn($field) {
     foreach ($field['foreign keys'] as $data) {
       if ($data['table'] == 'file_managed') {
         foreach ($data['columns'] as $field_column => $column) {
@@ -556,23 +577,28 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
     return FALSE;
   }
 
+  /**
+   * Initializes the stream info property.
+   */
   protected function initStreamInfo() {
     /** @var DrupalLocalStreamWrapper $stream */
     $stream = file_stream_wrapper_get_instance_by_scheme('public');
-    $this->stream_info['public'] = array(
-      'base_url' =>  $stream->getDirectoryPath() . '/',
+    $this->streamInfo['public'] = array(
+      'base_url' => $stream->getDirectoryPath() . '/',
       'style_url' => '/public/',
-      'offset' => $GLOBALS['base_url'] . '/'
+      'offset' => $GLOBALS['base_url'] . '/',
     );
 
-    $this->stream_info['private'] = array(
-      'base_url' =>  'system/files/',
+    $this->streamInfo['private'] = array(
+      'base_url' => 'system/files/',
       'style_url' => '/private/',
-      'offset' => $GLOBALS['base_url'] . '/'
+      'offset' => $GLOBALS['base_url'] . '/',
     );
   }
 
   /**
+   * Returns a list of image styles as options array.
+   *
    * @return array
    */
   protected function getImageStyles() {
@@ -585,8 +611,7 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
   }
 
   /**
-   * Returns a list of fields types that may contain textual references to image
-   * URIs.
+   * Returns a list of field types that may contain image URIs in text.
    *
    * @return array
    *   Array of field type labels that are keyed by the machine name of the
