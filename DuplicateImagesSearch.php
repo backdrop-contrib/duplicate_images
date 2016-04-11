@@ -2,6 +2,10 @@
 
 /**
  * @file
+ * Class DuplicateImagesSearch.
+ */
+
+/**
  * Class DuplicateImagesSearch contains the form definition and processing for
  * the search duplicates step.
  */

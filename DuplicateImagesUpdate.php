@@ -2,6 +2,10 @@
 
 /**
  * @file
+ * Class DuplicateImagesUpdate.
+ */
+
+/**
  * Class DuplicateImagesUpdate contains the form definition and processing for
  * the update references step.
  */

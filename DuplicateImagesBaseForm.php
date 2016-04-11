@@ -2,6 +2,10 @@
 
 /**
  * @file
+ * Class DuplicateImagesBaseForm.
+ */
+
+/**
  * Class DuplicateImagesBaseForm defines:
  * - Some base methods for the other form classes.
  * - Some static methods used by the form wizard code in the .module file.

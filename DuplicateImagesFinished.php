@@ -2,6 +2,10 @@
 
 /**
  * @file
+ * Class DuplicateImagesFinished.
+ */
+
+/**
  * Class DuplicateImagesFinished contains the form definition for the last
  * (purely informational) step.
  */

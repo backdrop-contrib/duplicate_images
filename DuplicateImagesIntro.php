@@ -2,6 +2,10 @@
 
 /**
  * @file
+ * Class DuplicateImagesIntro.
+ */
+
+/**
  * Class DuplicateImagesIntro contains the form definition for the first (purely
  * informational) step.
  */

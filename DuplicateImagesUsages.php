@@ -2,6 +2,10 @@
 
 /**
  * @file
+ * Class DuplicateImagesUsages.
+ */
+
+/**
  * Class DuplicateImagesUsages contains the form definition and processing for
  * the find usages step.
  */
