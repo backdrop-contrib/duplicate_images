@@ -7,7 +7,7 @@
 
 /**
  * Class DuplicateImagesFinished.
- * 
+ *
  * Contains the form definition for the last (purely informational) step.
  */
 class DuplicateImagesFinished extends DuplicateImagesBaseForm {

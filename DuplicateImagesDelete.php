@@ -7,7 +7,7 @@
 
 /**
  * Class DuplicateImagesDelete.
- * 
+ *
  * Contains the form definition and processing for the delete duplicate images
  * step.
  */

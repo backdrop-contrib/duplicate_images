@@ -7,7 +7,7 @@
 
 /**
  * Class DuplicateImagesSearch.
- * 
+ *
  * Contains the form definition and processing for  the search duplicates step.
  */
 class DuplicateImagesSearch extends DuplicateImagesBaseForm {
