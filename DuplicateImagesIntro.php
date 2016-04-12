@@ -6,8 +6,9 @@
  */
 
 /**
- * Class DuplicateImagesIntro contains the form definition for the first (purely
- * informational) step.
+ * Class DuplicateImagesIntro.
+ * 
+ * Contains the form definition for the first (purely informational) step.
  */
 class DuplicateImagesIntro extends DuplicateImagesBaseForm {
 

@@ -6,8 +6,9 @@
  */
 
 /**
- * Class DuplicateImagesUsages contains the form definition and processing for
- * the find usages step.
+ * Class DuplicateImagesUsages.
+ *
+ * Contains the form definition and processing for the find usages step.
  */
 class DuplicateImagesUsages extends DuplicateImagesBaseForm {
 
@@ -108,8 +109,8 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
     foreach ($suspicious_images as &$suspicious_info) {
       $thumbs = '';
       if (!empty($thumbnail_style)) {
-        $thumbs = $this->getThumbnail($suspicious_info['duplicate'], $thumbnail_style, $large_style, $i)
-          . ' ' . $this->getThumbnail($suspicious_info['original'], $thumbnail_style, $large_style, $i)
+        $thumbs = $this->getThumbnailHtml($suspicious_info['duplicate'], $thumbnail_style, $large_style, $i)
+          . ' ' . $this->getThumbnailHtml($suspicious_info['original'], $thumbnail_style, $large_style, $i)
           . ' ';
       }
       $suspicious_info = t('!thumbs%suspicious: %suspicious_of, but %reason differs', array(
@@ -679,7 +680,19 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
     return $result;
   }
 
-  private function getThumbnail($file_name, $thumbnail_style, $large_style, $i) {
+  /**
+   * Returns te html for showing a possibly clickable thumbnail.
+   *
+   * @param string $file_name
+   * @param string $thumbnail_style
+   * @param string $large_style
+   * @param $i
+   *
+   * @return string
+   *
+   * @throws \Exception
+   */
+  private function getThumbnailHtml($file_name, $thumbnail_style, $large_style, $i) {
     $info = image_get_info($file_name);
     if (!empty($info['extension'])) {
       $result = theme('image_style', array('style_name' => $thumbnail_style, 'path' => $file_name) + $info);

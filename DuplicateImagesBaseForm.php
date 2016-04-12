@@ -6,7 +6,9 @@
  */
 
 /**
- * Class DuplicateImagesBaseForm defines:
+ * Class DuplicateImagesBaseForm.
+ *
+ * Defines:
  * - Some base methods for the other form classes.
  * - Some static methods used by the form wizard code in the .module file.
  */

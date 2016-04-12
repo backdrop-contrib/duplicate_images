@@ -6,8 +6,10 @@
  */
 
 /**
- * Class DuplicateImagesDelete contains the form definition and processing for
- * the delete duplicate images step.
+ * Class DuplicateImagesDelete.
+ * 
+ * Contains the form definition and processing for the delete duplicate images
+ * step.
  */
 class DuplicateImagesDelete extends DuplicateImagesBaseForm {
 
@@ -77,7 +79,7 @@ class DuplicateImagesDelete extends DuplicateImagesBaseForm {
     );
     $form['options']['file_deletes'] = array(
       '#type' => 'checkboxes',
-      '#title' => t('Files') . ' (' . count($file_deletes) . ')',
+      '#title' => t('Files (@count)', array('@count' => count($file_deletes))),
       '#options' => $file_deletes,
       '#default_value' => array_keys($file_deletes),
       '#description' => t('These are the non managed files that can be deleted.'),

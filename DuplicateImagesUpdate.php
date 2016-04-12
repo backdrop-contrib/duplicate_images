@@ -6,8 +6,9 @@
  */
 
 /**
- * Class DuplicateImagesUpdate contains the form definition and processing for
- * the update references step.
+ * Class DuplicateImagesUpdate.
+ *
+ * Contains the form definition and processing for the update references step.
  */
 class DuplicateImagesUpdate extends DuplicateImagesBaseForm {
 
@@ -46,8 +47,8 @@ class DuplicateImagesUpdate extends DuplicateImagesBaseForm {
     $duplicate_references = $form_state['duplicate_references'];
     $duplicate_managed_files = $form_state['duplicate_managed_files'];
     $updates = array();
-    $fieldsLabel = t('field(s): ');
-    $duplicatesLabel = t('duplicate(s) referred: ');
+    $fields_label = t('field(s):');
+    $duplicates_label = t('duplicate(s) referred:');
     foreach ($update_instructions as $entity_type => $entities) {
       foreach ($entities as $entity_id => $entity) {
         $fields = implode(', ', array_keys($entity));
@@ -58,8 +59,8 @@ class DuplicateImagesUpdate extends DuplicateImagesBaseForm {
           $duplicates = $duplicate_managed_files[$entity_id];
         }
         $updates["$entity_type $entity_id"] = "$entity_type $entity_id:<br>"
-          . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . $fieldsLabel . $fields . '<br>'
-          . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . $duplicatesLabel . $duplicates;
+          . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . $fields_label . ' ' . $fields . '<br>'
+          . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . $duplicates_label . ' ' . $duplicates;
       }
     }
 
