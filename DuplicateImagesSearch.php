@@ -117,7 +117,7 @@ class DuplicateImagesSearch extends DuplicateImagesBaseForm {
       '#default_value' => $large_style,
       '#description' => t('Defines the image style the thumbnail will link to. Documents will always be linked to the document itself.'),
     );
-    if (module_exists('colorbox')) {
+    if (module_exists('colorbox') && user_access('administer site configuration')) {
       $form['options']['colorbox_info'] = array(
         '#type' => 'markup',
         '#markup' => t('Note: you may want to temporarily remove "admin*" from the Colorbox advanced setting "%setting" at !path.',

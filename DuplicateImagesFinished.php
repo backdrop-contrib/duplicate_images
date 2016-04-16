@@ -64,7 +64,7 @@ class DuplicateImagesFinished extends DuplicateImagesBaseForm {
       );
     }
 
-    if (module_exists('colorbox')) {
+    if (module_exists('colorbox') && user_access('administer site configuration')) {
       $form['options']['colorbox_info'] = array(
         '#type' => 'markup',
         '#markup' => t('Note: you may want to restore the "admin*" line to the Colorbox advanced setting "%setting" at !path.',
