@@ -70,6 +70,33 @@ class DuplicateImagesDelete extends DuplicateImagesBaseForm {
     // file_delete(), so we do not have to do that ourselves anymore.
     $file_deletes = array_diff($file_deletes, $managed_file_deletes);
 
+    $duplicate_images = $form_state['duplicate_images'];
+    $suspicious_images = $form_state['suspicious_images'];
+    $thumbnail_style = $form_state['thumbnail_style'];
+    $large_style = $form_state['large_style'];
+    $i = 1;
+    foreach ($managed_file_deletes as &$duplicate) {
+      $thumbs = '';
+      $original = '';
+      if (array_key_exists($duplicate, $duplicate_images)) {
+        $original = $duplicate_images[$duplicate];
+      }
+      elseif (array_key_exists($duplicate, $suspicious_images)) {
+        $original = $suspicious_images[$duplicate]['original'];
+      }
+      if (!empty($thumbnail_style)) {
+        $thumbs = $this->getThumbnailHtml($duplicate, $thumbnail_style, $large_style, $i)
+          . ' ' . $this->getThumbnailHtml($original, $thumbnail_style, $large_style, $i)
+          . ' ';
+      }
+      $duplicate = t('!thumbs%duplicate is a duplicate of %original', array(
+        '!thumbs' => $thumbs,
+        '%duplicate' => $duplicate,
+        '%original' => $original,
+      ));
+      $i++;
+    }
+
     $form['options']['managed_file_deletes'] = array(
       '#type' => 'checkboxes',
       '#title' => t('Managed files (@count)', array('@count' => count($managed_file_deletes))),
@@ -77,6 +104,29 @@ class DuplicateImagesDelete extends DuplicateImagesBaseForm {
       '#default_value' => array_keys($managed_file_deletes),
       '#description' => t('These are the managed files that can be deleted.'),
     );
+
+    $i = 1;
+    foreach ($file_deletes as &$duplicate) {
+      $thumbs = '';
+      $original = '';
+      if (array_key_exists($duplicate, $duplicate_images)) {
+        $original = $duplicate_images[$duplicate];
+      }
+      elseif (array_key_exists($duplicate, $suspicious_images)) {
+        $original = $duplicate_images[$duplicate]['original'];
+      }
+      if (!empty($thumbnail_style)) {
+        $thumbs = $this->getThumbnailHtml($duplicate, $thumbnail_style, $large_style, $i)
+          . ' ' . $this->getThumbnailHtml($original, $thumbnail_style, $large_style, $i)
+          . ' ';
+      }
+      $duplicate = t('!thumbs%duplicate is a duplicate of %original', array(
+        '!thumbs' => $thumbs,
+        '%duplicate' => $duplicate,
+        '%original' => $original,
+      ));
+      $i++;
+    }
     $form['options']['file_deletes'] = array(
       '#type' => 'checkboxes',
       '#title' => t('Files (@count)', array('@count' => count($file_deletes))),

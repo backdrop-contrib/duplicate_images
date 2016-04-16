@@ -104,6 +104,53 @@ abstract class DuplicateImagesBaseForm {
   }
 
   /**
+   * Returns te html for showing a possibly clickable thumbnail.
+   *
+   * @param string $file_name
+   * @param string $thumbnail_style
+   * @param string $large_style
+   * @param $i
+   *
+   * @return string
+   *
+   * @throws \Exception
+   */
+  protected function getThumbnailHtml(
+    $file_name,
+    $thumbnail_style,
+    $large_style,
+    $i
+  ) {
+    $info = image_get_info($file_name);
+    if (!empty($info['extension'])) {
+      $result = theme('image_style',
+        array('style_name' => $thumbnail_style, 'path' => $file_name) + $info);
+    }
+    else {
+      $file = new stdClass();
+      $file->mimetype = file_get_mimetype($file_name);
+      $result = theme('file_icon', array('file' => $file, 'alt' => ''));
+    }
+
+    if (!empty($large_style)) {
+      if ($large_style === 'full image' || empty($info['extension'])) {
+        $link_path = file_create_url($file_name);
+      }
+      else {
+        $link_path = image_style_url($large_style, $file_name);
+      }
+      $result = l($result, $link_path, array(
+        'html' => TRUE,
+        'attributes' => array(
+          'class' => array('colorbox'),
+          'rel' => "gallery-all-$i",
+        ),
+      ));
+    }
+    return $result;
+  }
+
+  /**
    * Returns the current step based on the request query.
    *
    * @return string

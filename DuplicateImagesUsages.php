@@ -13,16 +13,19 @@
 class DuplicateImagesUsages extends DuplicateImagesBaseForm {
 
   /**
-   * The list of usages found. The format is such that it allows us to update
-   * these usages to refer to the original image.
+   * The list of usages found.
+   *
+   * The format is such that it allows us to update these usages to refer to the
+   * original image.
    *
    * @var array[]
    */
   protected $updateInstructions = array();
 
   /**
-   * The list of references to duplicates keyed by entity type and id. This
-   * allows us to not delete duplicates if not all referring entities were
+   * The list of references to duplicates keyed by entity type and id.
+   *
+   * This allows us to not delete duplicates if not all referring entities were
    * correctly updated.
    *
    * @var array[]
@@ -30,8 +33,10 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
   protected $duplicateReferences = array();
 
   /**
-   * The list of managed files that refer to a duplicate and that may be
-   * deleted if all usages are correctly updated. Key: fid, value: duplicate.
+   * The list of managed files that refer to a duplicate.
+   *
+   * These may be deleted if all usages are correctly updated.
+   * Key: fid, value: duplicate.
    *
    * @var string[]
    */
@@ -45,8 +50,7 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
   protected $originalIds = array();
 
   /**
-   * An array with field names as key and the referring column in that field as
-   * value.
+   * Array of field name => "referring column in that field" key-value pairs.
    *
    * @var null|array[]
    */
@@ -676,47 +680,6 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
         }
         $result[$field_info['field_name']] = $label;
       }
-    }
-    return $result;
-  }
-
-  /**
-   * Returns te html for showing a possibly clickable thumbnail.
-   *
-   * @param string $file_name
-   * @param string $thumbnail_style
-   * @param string $large_style
-   * @param $i
-   *
-   * @return string
-   *
-   * @throws \Exception
-   */
-  private function getThumbnailHtml($file_name, $thumbnail_style, $large_style, $i) {
-    $info = image_get_info($file_name);
-    if (!empty($info['extension'])) {
-      $result = theme('image_style', array('style_name' => $thumbnail_style, 'path' => $file_name) + $info);
-    }
-    else {
-      $file = new stdClass();
-      $file->mimetype = file_get_mimetype($file_name);
-      $result = theme('file_icon', array('file' => $file, 'alt' => ''));
-    }
-
-    if (!empty($large_style)) {
-      if ($large_style === 'full image' || empty($info['extension'])) {
-        $link_path = file_create_url($file_name);
-      }
-      else {
-        $link_path = image_style_url($large_style, $file_name);
-      }
-      $result = l($result, $link_path, array(
-        'html' => TRUE,
-        'attributes' => array(
-          'class' => array('colorbox'),
-          'rel' => "gallery-all-$i",
-        ),
-      ));
     }
     return $result;
   }
