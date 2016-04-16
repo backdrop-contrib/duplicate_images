@@ -53,16 +53,22 @@ class DuplicateImagesSearch extends DuplicateImagesBaseForm {
       '#tree' => FALSE,
     );
 
+    $isPrivatePathDefined = (bool) variable_get('file_private_path', FALSE);
+    $options = array(
+      'public://' => 'public://',
+    );
+    if ($isPrivatePathDefined) {
+      $options['private://'] = 'private://';
+    }
     $form['options']['file_systems'] = array(
       '#type' => 'checkboxes',
       '#title' => t('File systems to search'),
-      '#options' => array(
-        'public://' => 'public://',
-        'private://' => 'private://',
-      ),
+      '#options' => $options,
       '#default_value' => array('public://'),
       '#description' => t('Indicate which file systems to search for duplicates.'),
+      '#access' => $isPrivatePathDefined,
     );
+
     $form['options']['excluded_sub_folders'] = array(
       '#type' => 'textfield',
       '#title' => t('Sub folders to exclude'),

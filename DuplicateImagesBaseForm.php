@@ -16,7 +16,7 @@ abstract class DuplicateImagesBaseForm {
   /**
    * @var string
    */
-  protected $step = '';
+  protected $step;
 
   /**
    * DuplicateImagesBaseForm constructor.
@@ -49,7 +49,7 @@ abstract class DuplicateImagesBaseForm {
    * @return array[]
    */
   public function fields(array $form, array &$form_state) {
-    $this->step = isset($_GET['op']) ? $_GET['op'] : 'intro';
+    $this->step = static::getStep();
 
     // Common settings and elements: task list +  help.
     $form_state['cache'] = TRUE;
@@ -81,6 +81,19 @@ abstract class DuplicateImagesBaseForm {
   }
 
   /**
+   * Returns the progress text for the current step of the process.
+   *
+   * @return string
+   *
+   * @throws \Exception
+   */
+  protected function getProgress() {
+    /** @noinspection PhpIncludeInspection */
+    require_once DRUPAL_ROOT . '/includes/theme.maintenance.inc';
+    return theme('task_list', array('items' => static::getSteps(), 'active' => $this->step));
+  }
+
+  /**
    * Submit handler for this step.
    *
    * @param array[] $form
@@ -88,6 +101,15 @@ abstract class DuplicateImagesBaseForm {
    */
   public function submit(/** @noinspection PhpUnusedParameterInspection */ array $form, array &$form_state) {
     $form_state['rebuild'] = TRUE;
+  }
+
+  /**
+   * Returns the current step based on the request query.
+   *
+   * @return string
+   */
+  static public function getStep() {
+    return isset($_GET['op']) ? $_GET['op'] : 'intro';
   }
 
   /**
@@ -109,12 +131,12 @@ abstract class DuplicateImagesBaseForm {
   }
 
   /**
-   * Returns the next step.
+   * Returns the previous step.
    *
    * @param string $step
    *
    * @return string
-   *   The next step, or the empty string if this is the last step.
+   *   The previous step, or the empty string if this is the first step.
    */
   static public function getPrev($step) {
     $steps = array_keys(static::getSteps());
@@ -134,19 +156,6 @@ abstract class DuplicateImagesBaseForm {
     $steps = array_keys(static::getSteps());
     $index = array_search($step, $steps);
     return $index !== FALSE && $index < count($steps) - 1 ? $steps[++$index] : '';
-  }
-
-  /**
-   * Returns the progress text for the current step of the process.
-   *
-   * @return string
-   *
-   * @throws \Exception
-   */
-  protected function getProgress() {
-    /** @noinspection PhpIncludeInspection */
-    require_once DRUPAL_ROOT . '/includes/theme.maintenance.inc';
-    return theme('task_list', array('items' => static::getSteps(), 'active' => $this->step));
   }
 
 }
