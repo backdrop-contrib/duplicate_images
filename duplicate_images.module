@@ -6,6 +6,19 @@
  */
 
 /**
+ * Implements hook_help().
+ */
+function duplicate_help($path) {
+  switch ($path) {
+    // Main module help for this module
+    case 'admin/help#duplicate_images':
+      return '<p>' . t('This module allows and administrator to find and remove duplicate images, thereby updating references to duplicate images to point to their original. See the readme.txt for a detailed explanation.') . '</p>';
+
+  }
+  return NULL;
+}
+
+/**
  * Implements hook_permission().
  */
 function duplicate_images_permission() {

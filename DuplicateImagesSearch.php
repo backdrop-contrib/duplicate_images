@@ -123,7 +123,7 @@ class DuplicateImagesSearch extends DuplicateImagesBaseForm {
         '#markup' => t('Note: you may want to temporarily remove "admin*" from the Colorbox advanced setting "%setting" at !path.',
           array(
             '%setting' => t('Show Colorbox on specific pages'),
-            '!path' => l('admin/config/media/colorbox', 'admin/config/media/colorbox'),
+            '!path' => l(t('Colorbox settings'), 'admin/config/media/colorbox'),
           )),
       );
     }

@@ -24,7 +24,7 @@ class DuplicateImagesFinished extends DuplicateImagesBaseForm {
    */
   protected function getHelp() {
     return t('The process has finished. You can now disable this module. BTW, this may be a good time to install the !link module which allows you to reuse already uploaded images.',
-      array('!link' => l('FileField Sources', 'https://www.drupal.org/project/filefield_sources', array('external' => TRUE))));
+      array('!link' => l(t('FileField Sources'), 'https://www.drupal.org/project/filefield_sources', array('external' => TRUE))));
   }
 
   /**
@@ -70,7 +70,7 @@ class DuplicateImagesFinished extends DuplicateImagesBaseForm {
         '#markup' => t('Note: you may want to restore the "admin*" line to the Colorbox advanced setting "%setting" at !path.',
           array(
             '%setting' => t('Show Colorbox on specific pages'),
-            '!path' => l('admin/config/media/colorbox', 'admin/config/media/colorbox'),
+            '!path' => l(t('Colorbox settings'), 'admin/config/media/colorbox'),
           )),
       );
     }
