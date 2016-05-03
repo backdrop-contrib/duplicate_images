@@ -56,9 +56,21 @@ function duplicate_images_menu() {
  *   The form.
  */
 function duplicate_images_get_form(array $form, array &$form_state) {
-  $step = DuplicateImagesBaseForm::getStep();
-  $form_class = duplicate_images_get_form_class($step);
-  $form = $form_class->fields($form, $form_state);
+  try {
+    $step = DuplicateImagesBaseForm::getStep();
+    $form_class = duplicate_images_get_form_class($step);
+    $form = $form_class->fields($form, $form_state);
+  }
+  catch (Exception $e) {
+    drupal_set_message(
+      t('An error occurred. Please run the wizard step by step, starting at the !link. Note that for now, you cannot use the back button.',
+          array('!link' => l(t('First step'), 'admin/config/media/duplicate-images'))),
+        'warning');
+    drupal_set_message(
+      t('If this message appears while following the process. See !log_messages for details.',
+          array('!log_messages' => l(t('Recent log messages'), 'admin/reports/dblog'))),
+        'warning');
+  }
   return $form;
 }
 
