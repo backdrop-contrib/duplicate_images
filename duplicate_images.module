@@ -62,14 +62,7 @@ function duplicate_images_get_form(array $form, array &$form_state) {
     $form = $form_class->fields($form, $form_state);
   }
   catch (Exception $e) {
-    drupal_set_message(
-      t('An error occurred. Please run the wizard step by step, starting at the !link. Note that for now, you cannot use the back button.',
-          array('!link' => l(t('First step'), 'admin/config/media/duplicate-images'))),
-        'warning');
-    drupal_set_message(
-      t('If this message appears while following the process. See !log_messages for details.',
-          array('!log_messages' => l(t('Recent log messages'), 'admin/reports/dblog'))),
-        'warning');
+    duplicate_images_show_error_message();
   }
   return $form;
 }
@@ -87,9 +80,13 @@ function duplicate_images_get_form(array $form, array &$form_state) {
  *   results.
  */
 function duplicate_images_get_form_submit(array $form, array &$form_state) {
-  $step = DuplicateImagesBaseForm::getPrev(DuplicateImagesBaseForm::getStep());
-  $form_class = duplicate_images_get_form_class($step);
-  $form_class->submit($form, $form_state);
+ try {
+   $step = DuplicateImagesBaseForm::getPrev(DuplicateImagesBaseForm::getStep());
+   $form_class = duplicate_images_get_form_class($step);
+   $form_class->submit($form, $form_state);
+ }
+ catch (Exception $e) {
+   duplicate_images_show_error_message(); }
 }
 
 /**
@@ -114,4 +111,24 @@ function duplicate_images_get_form_class($step) {
     $classes[$step] = new $class();
   }
   return $classes[$step];
+}
+
+/**
+ * Shows a general error message.
+ *
+ * This only occurs when users are playing around or are using the back button.
+ */
+function duplicate_images_show_error_message() {
+  drupal_set_message(
+    t('An error occurred. Please run the wizard step by step, starting at the !link. Note that for now, you cannot use the back button.',
+      array(
+        '!link' => l(t('First step'), 'admin/config/media/duplicate-images')
+      )),
+    'warning');
+  drupal_set_message(
+    t('If this message appears while following the process. See !log_messages for details.',
+      array(
+        '!log_messages' => l(t('Recent log messages'), 'admin/reports/dblog')
+      )),
+    'warning');
 }
