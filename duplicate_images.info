@@ -1,7 +1,8 @@
 name = "Duplicate Images"
 description = "Finds and removes duplicate images."
 core = 7.x
-configure=admin/config/media/duplicate-images
+configure = admin/config/media/duplicate-images
+package = Media
 
 dependencies[] = file
 dependencies[] = image (>7.20)
