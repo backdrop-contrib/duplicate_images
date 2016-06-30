@@ -8,17 +8,19 @@
 /**
  * Class DuplicateImagesSearch.
  *
- * Contains the form definition and processing for  the search duplicates step.
+ * Contains the form definition and processing for the search duplicates step.
  */
 class DuplicateImagesSearch extends DuplicateImagesBaseForm {
 
   /**
    * @var string[]
+   *   List of duplicates found.
    */
   protected $duplicates = array();
 
   /**
    * @var string[]
+   *   List of suspicious images found (names look equal but size/md5 differs).
    */
   protected $suspicious = array();
 
@@ -82,9 +84,9 @@ class DuplicateImagesSearch extends DuplicateImagesBaseForm {
       '#default_value' => 1,
       '#description' => t('Indicate whether file duplicates will also be tested for equality by using <a href="http://php.net/manual/en/function.md5-file.php">md5_file()</a> as well. This will prevent false positives but might slow down the process when there are many big files to check.'),
     );
-    $form['options']['max_images'] = array(
+    $form['options']['max_duplicates'] = array(
       '#type' => 'textfield',
-      '#title' => t('Maximum number of images to process'),
+      '#title' => t('Maximum number of duplicte images to process'),
       '#default_value' => '',
       '#description' => t('If your system does not allow to reset the time limit or you hate long page waits, you can limit the number of duplicate images that will be searched for and processed. Leave empty to process all duplicates at once.'),
       '#size' => 4,
@@ -146,9 +148,9 @@ class DuplicateImagesSearch extends DuplicateImagesBaseForm {
         $item = trim($item);
       });
     $use_md5 = $form_state['values']['use_md5'] == 1;
-    $max_images = !empty($form_state['values']['max_images']) ? (int) $form_state['values']['max_images'] : NULL;
+    $max_duplicates = !empty($form_state['values']['max_duplicates']) ? (int) $form_state['values']['max_duplicates'] : NULL;
 
-    $results = $this->exec($file_systems, $excluded_sub_folders, $use_md5, $max_images);
+    $results = $this->exec($file_systems, $excluded_sub_folders, $use_md5, $max_duplicates);
     $form_state['duplicate_images'] = $results[0];
     $form_state['suspicious_images'] = $results[1];
     $form_state['thumbnail_style'] = $form_state['values']['thumbnail_style'];
@@ -159,19 +161,23 @@ class DuplicateImagesSearch extends DuplicateImagesBaseForm {
    * Executes the find duplicates step.
    *
    * @param string[] $file_systems
+   *   Folder to search.
    * @param string[] $excluded_sub_folders
+   *   List of sub folders to exclude.
    * @param bool $use_md5
-   * @param int|null $max_images
+   *   Also use md5 to determine equality.
+   * @param int|null $max_duplicates
+   *   Max. number of duplicate images to return.
    *
    * @return array[]
    *   2 arrays:
    *   - array with $duplicate => $original string pairs
    *   - array with $suspicious => array with keys duplicate, original, reason.
    */
-  public function exec(array $file_systems, array $excluded_sub_folders, $use_md5, $max_images) {
+  public function exec(array $file_systems, array $excluded_sub_folders, $use_md5, $max_duplicates) {
     foreach ($file_systems as $file_system) {
       try {
-        $this->search($file_system, $excluded_sub_folders, $use_md5, $max_images);
+        $this->search($file_system, $excluded_sub_folders, $use_md5, $max_duplicates);
       }
       catch (RuntimeException $e) {
         if ($e->getMessage() !== 'Maximum number of images reached') {
@@ -186,11 +192,15 @@ class DuplicateImagesSearch extends DuplicateImagesBaseForm {
    * Recursively searches for duplicate images.
    *
    * @param string $folder
+   *   Folder to search.
    * @param string[] $excluded_sub_folders
+   *   List of sub folders to exclude.
    * @param bool $use_md5
-   * @param int|null $max_images
+   *   Also use md5 to determine equality.
+   * @param int|null $max_duplicates
+   *   Max. number of duplicate images to return.
    */
-  protected function search($folder, array $excluded_sub_folders, $use_md5, $max_images) {
+  protected function search($folder, array $excluded_sub_folders, $use_md5, $max_duplicates) {
     // Create a list of files to compare and a list of sub folders to
     // recursively search.
     $files = array();
@@ -245,7 +255,7 @@ class DuplicateImagesSearch extends DuplicateImagesBaseForm {
       if ($reason === NULL) {
         // Confirmed duplicate: add to $result.
         $this->duplicates[$duplicate] = $original;
-        if (is_int($max_images) && count($this->duplicates) >= $max_images) {
+        if (is_int($max_duplicates) && count($this->duplicates) >= $max_duplicates) {
           throw new RuntimeException('Maximum number of images reached');
         }
       }
@@ -265,7 +275,7 @@ class DuplicateImagesSearch extends DuplicateImagesBaseForm {
     // Recursively call search() on each sub folder. Excluded sub_folders only
     // holds on the top level, so pass an empty array for that.
     foreach ($dirs as $dir) {
-      $this->search($dir, array(), $use_md5, $max_images);
+      $this->search($dir, array(), $use_md5, $max_duplicates);
     }
   }
 

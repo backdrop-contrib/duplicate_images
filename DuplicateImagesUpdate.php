@@ -135,8 +135,11 @@ class DuplicateImagesUpdate extends DuplicateImagesBaseForm {
    * Updates the given fields of 1 entity.
    *
    * @param string $entity_type
+   *   Entity type.
    * @param object $entity
+   *   Entity.
    * @param array $field_updates
+   *   List of updates to perform on the fields of the entity.
    *
    * @return bool
    *   The result of entity_save();

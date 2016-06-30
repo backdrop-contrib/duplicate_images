@@ -10,7 +10,7 @@
  */
 function duplicate_images_help($path) {
   switch ($path) {
-    // Main module help for this module
+    // Main module help for this module.
     case 'admin/help#duplicate_images':
       return '<p>' . t('This module allows and administrator to find and remove duplicate images, thereby updating references to duplicate images to point to their original. See the readme.txt for a detailed explanation.') . '</p>';
 
@@ -50,10 +50,12 @@ function duplicate_images_menu() {
  * Callback for drupal_get_form() that builds the Duplicate Images form.
  *
  * @param array[] $form
+ *   Form.
  * @param array $form_state
+ *   Form state.
  *
  * @return array[]
- *   The form.
+ *   Form.
  */
 function duplicate_images_get_form(array $form, array &$form_state) {
   try {
@@ -74,27 +76,29 @@ function duplicate_images_get_form(array $form, array &$form_state) {
  * way we could keep the fields and processing of it together in 1 class.
  *
  * @param array $form
- *   The form.
+ *   Form.
  * @param array $form_state
- *   The form state. Passed by reference, thus can be used to store intermediate
+ *   Form state. Passed by reference, thus can be used to store intermediate
  *   results.
  */
 function duplicate_images_get_form_submit(array $form, array &$form_state) {
- try {
-   $step = DuplicateImagesBaseForm::getPrev(DuplicateImagesBaseForm::getStep());
-   $form_class = duplicate_images_get_form_class($step);
-   $form_class->submit($form, $form_state);
- }
- catch (Exception $e) {
-   duplicate_images_show_error_message(); }
+  try {
+    $step = DuplicateImagesBaseForm::getPrev(DuplicateImagesBaseForm::getStep());
+    $form_class = duplicate_images_get_form_class($step);
+    $form_class->submit($form, $form_state);
+  } catch (Exception $e) {
+    duplicate_images_show_error_message();
+  }
 }
 
 /**
  * Creates the form class for the given step.
  *
  * @param string $step
+ *   Step.
  *
  * @return DuplicateImagesBaseForm
+ *   A DuplicateImagesBaseForm.
  *
  * @throws InvalidArgumentException
  */
@@ -121,14 +125,10 @@ function duplicate_images_get_form_class($step) {
 function duplicate_images_show_error_message() {
   drupal_set_message(
     t('An error occurred. Please run the wizard step by step, starting at the !link. Note that for now, you cannot use the back button.',
-      array(
-        '!link' => l(t('First step'), 'admin/config/media/duplicate-images')
-      )),
+      array('!link' => l(t('First step'), 'admin/config/media/duplicate-images'))),
     'warning');
   drupal_set_message(
     t('If this message appears while following the process. See !log_messages for details.',
-      array(
-        '!log_messages' => l(t('Recent log messages'), 'admin/reports/dblog')
-      )),
+      array('!log_messages' => l(t('Recent log messages'), 'admin/reports/dblog'))),
     'warning');
 }

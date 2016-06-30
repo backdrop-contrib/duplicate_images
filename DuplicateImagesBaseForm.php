@@ -15,6 +15,7 @@
 abstract class DuplicateImagesBaseForm {
   /**
    * @var string
+   *   Step.
    */
   protected $step;
 
@@ -30,6 +31,7 @@ abstract class DuplicateImagesBaseForm {
    * Returns the button text for the current step of the process.
    *
    * @return string
+   *   Button text for the current step of the process.
    */
   abstract protected function getButton();
 
@@ -37,6 +39,7 @@ abstract class DuplicateImagesBaseForm {
    * Returns the help text for the current step of the process.
    *
    * @return string
+   *   Help text for the current step of the process.
    */
   abstract protected function getHelp();
 
@@ -44,9 +47,12 @@ abstract class DuplicateImagesBaseForm {
    * Get the step specific form fields.
    *
    * @param array[] $form
+   *   Form.
    * @param array $form_state
+   *   Form state.
    *
    * @return array[]
+   *   Step specific form fields.
    */
   public function fields(array $form, array &$form_state) {
     $this->step = static::getStep();
@@ -84,6 +90,7 @@ abstract class DuplicateImagesBaseForm {
    * Returns the progress text for the current step of the process.
    *
    * @return string
+   *   Progress text for the current step of the process.
    *
    * @throws \Exception
    */
@@ -97,30 +104,32 @@ abstract class DuplicateImagesBaseForm {
    * Submit handler for this step.
    *
    * @param array[] $form
+   *   Form.
    * @param array $form_state
+   *   Form state.
    */
   public function submit(/** @noinspection PhpUnusedParameterInspection */ array $form, array &$form_state) {
     $form_state['rebuild'] = TRUE;
   }
 
   /**
-   * Returns te html for showing a possibly clickable thumbnail.
+   * Returns the html for showing a possibly clickable thumbnail.
    *
    * @param string $file_name
+   *   File to get thumbnail for.
    * @param string $thumbnail_style
+   *   Image style to use for the thumbnail.
    * @param string $large_style
+   *   Image style to link the thumbnail to.
    * @param $i
+   *   Postfix to use in colorbox gallery id.
    *
    * @return string
+   *   Html for showing a possibly clickable thumbnail.
    *
    * @throws \Exception
    */
-  protected function getThumbnailHtml(
-    $file_name,
-    $thumbnail_style,
-    $large_style,
-    $i
-  ) {
+  protected function getThumbnailHtml($file_name, $thumbnail_style, $large_style, $i) {
     $info = image_get_info($file_name);
     if (!empty($info['extension'])) {
       $result = theme('image_style',
@@ -154,6 +163,7 @@ abstract class DuplicateImagesBaseForm {
    * Returns the current step based on the request query.
    *
    * @return string
+   *   Current step based on the request query.
    */
   static public function getStep() {
     return isset($_GET['op']) ? $_GET['op'] : 'intro';
@@ -163,6 +173,7 @@ abstract class DuplicateImagesBaseForm {
    * Returns a translated list of tasks.
    *
    * @return string[]
+   *   Translated list of tasks
    */
   public static function getSteps() {
     $steps = array(
@@ -181,6 +192,7 @@ abstract class DuplicateImagesBaseForm {
    * Returns the previous step.
    *
    * @param string $step
+   *   Step.
    *
    * @return string
    *   The previous step, or the empty string if this is the first step.
@@ -195,6 +207,7 @@ abstract class DuplicateImagesBaseForm {
    * Returns the next step.
    *
    * @param string $step
+   *   Step.
    *
    * @return string
    *   The next step, or the empty string if this is the last step.

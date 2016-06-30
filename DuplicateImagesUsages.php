@@ -263,17 +263,21 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
   }
 
   /**
-   * Find all usages of a duplicate.
+   * Finds all usages of a duplicate.
    *
    * For all usages found an update or replacement instruction is added to
    * $this->usage.
    *
    * @param string $duplicate
+   *   Name of the duplicate image.
    * @param string $original
+   *   Name of the original image.
    * @param bool $managed_files
+   *   Also search in the managed files table.
    * @param array[] $fields
    *   Array of field info arrays.
    * @param string[] $image_styles
+   *   List of image styles to search for usages.
    */
   protected function findUsages($duplicate, $original, $managed_files, array $fields, array $image_styles) {
     if ($managed_files) {
@@ -294,7 +298,9 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
    * Update instructions are added to $this->usage.
    *
    * @param string $duplicate
+   *   Name of the duplicate image.
    * @param string $original
+   *   Name of the original image.
    */
   protected function findUsagesAsManagedFile($duplicate, $original) {
     // Find the managed file object (at most 1 object as 'uri' is unique) for
@@ -338,15 +344,17 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
   }
 
   /**
-   * Find the entities referring to this managed file.
+   * Finds the entities referring to this managed file.
    *
-   * These references come from either file or image fields, or from  custom
+   * These references come from either file field, image fields, or from custom
    * managed file reference fields.
    *
    * Update instructions are added to $this->usage.
    *
    * @param object $managed_duplicate
+   *   Managed file record for a duplicate image.
    * @param int $original_fid
+   *   Fid of the original.
    */
   protected function findUsagesOfManagedFile($managed_duplicate, $original_fid) {
     $this->findUsagesByUserPicture($managed_duplicate->fid, $original_fid, $managed_duplicate->uri);
@@ -359,8 +367,11 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
    * Finds usages of a managed file in the user picture property.
    *
    * @param int $duplicate_fid
+   *   Fid of the duplicate.
    * @param int $original_fid
+   *   Fid of the original.
    * @param string $duplicate
+   *   Name of the duplicate being searched for.
    */
   protected function findUsagesByUserPicture($duplicate_fid, $original_fid, $duplicate) {
     $table_name = 'users';
@@ -376,8 +387,9 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
   }
 
   /**
-   * Find entities referring to a duplicate via some columns in some specified
-   * field type(s).
+   * Finds entities for which the given field is referring to a duplicate.
+   *
+   * The search is done in only some of the columns of the specified field.
    *
    * Update instructions are added to $this->usage.
    *
@@ -394,6 +406,7 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
    *   does not actually update, This parameter is used to create an "update
    *   instruction".
    * @param string[] $image_styles
+   *   List of image styles to search for usages.
    */
   protected function findUsagesByField($field, $exact, $duplicate, $original, array $image_styles) {
     if (!$exact) {
@@ -468,6 +481,7 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
    *   does not actually update, This parameter is used to create an "update
    *   instruction".
    * @param string $duplicate
+   *   The duplicate file that $value is referring to.
    */
   protected function findUsagesByFieldColumn($field, $column, $exact, $value, $replace, $duplicate) {
     if ($exact) {
@@ -507,6 +521,7 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
    * Helper method that captures knowledge of specific field types.
    *
    * @param string $field_type
+   *   Field type.
    *
    * @return string[]
    *   A list of field columns to search for occurrences of the file names.
@@ -608,6 +623,7 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
    * Returns a list of image styles as options array.
    *
    * @return array
+   *   List of image styles as options array.
    */
   protected function getImageStyles() {
     $image_styles = image_styles();
@@ -622,8 +638,7 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
    * Returns a list of field types that may contain image URIs in text.
    *
    * @return array
-   *   Array of field type labels that are keyed by the machine name of the
-   *   field type.
+   *   Array of field type labels. Keyed by the machine name of the field type.
    */
   protected function getFieldsThatMayBeSearched() {
     $options = array();
@@ -638,8 +653,7 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
    * Returns a list of field types that may contain image URIs in text.
    *
    * @return array
-   *   Array of field type labels that are keyed by the machine name of the
-   *   field type.
+   *   Array of field type labels. Keyed by the machine name of the field type.
    */
   protected function getFieldTypesThatMayBeSearched() {
     $options = array();
@@ -658,9 +672,10 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
    * Returns all fields that are of any of the given types.
    *
    * @param string $field_type
+   *   Field type.
    *
    * @return array[]
-   *   An array of field info arrays.
+   *   List of field info arrays.
    */
   protected function getFieldsByType($field_type) {
     $result = array();

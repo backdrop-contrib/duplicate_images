@@ -153,8 +153,10 @@ class DuplicateImagesDelete extends DuplicateImagesBaseForm {
   /**
    * Deletes the selected managed files and files.
    *
-   * @param array $selected_managed_file_deletes
-   * @param array $selected_file_deletes
+   * @param string[] $selected_managed_file_deletes
+   *   List of file names to delete. Keyed by fid.
+   * @param string[] $selected_file_deletes
+   *   List of files names to delete.
    *
    * @return array
    *   array[file_name => bool|fid] (success)
@@ -171,7 +173,7 @@ class DuplicateImagesDelete extends DuplicateImagesBaseForm {
    * Deletes a list of managed files.
    *
    * @param string[] $selected_managed_file_deletes
-   *   List of files to delete keyed by fid.
+   *   List of file names to delete. Keyed by fid.
    *
    * @return array
    *   array[file_name => fid|true] list of results.
@@ -197,6 +199,7 @@ class DuplicateImagesDelete extends DuplicateImagesBaseForm {
    * Deletes a set of files and their possible image style derivatives.
    *
    * @param string[] $file_deletes
+   *   List of files names to delete.
    *
    * @return bool[]
    *   array[file_name => bool] (success)
@@ -213,6 +216,7 @@ class DuplicateImagesDelete extends DuplicateImagesBaseForm {
    * Deletes a file and its possible image style derivatives.
    *
    * @param string $file_name
+   *   file_name.
    *
    * @return bool
    *   true on success, false on failure.
@@ -226,6 +230,7 @@ class DuplicateImagesDelete extends DuplicateImagesBaseForm {
    * Deletes the image derivatives of a file.
    *
    * @param string $file_name
+   *   file_name.
    */
   protected function deleteDerivatives($file_name) {
     $image_styles = image_styles();

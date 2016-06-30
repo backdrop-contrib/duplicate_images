@@ -25,14 +25,14 @@ class DuplicateImagesIntro extends DuplicateImagesBaseForm {
   protected function getHelp() {
     if (module_exists('backup_migrate')) {
       $msg = t('Before you run this wizard, <strong>make sure you have a backup of your database.</strong> Use !backup_migrate to create that backup now.',
-        array('!backup_migrate' => l(t('Backup and Migrate'),'admin/config/system/backup_migrate'))
+        array('!backup_migrate' => l(t('Backup and Migrate'), 'admin/config/system/backup_migrate'))
       );
     }
     else {
       $msg = t('Before you run this wizard, <strong>make sure you have a backup of your database.</strong>');
     }
     drupal_set_message($msg, 'warning');
-    
+
     return t('<h2>This module deduplicates images and other files on the public or private file system.</h2>
     <p>Whenever a user uploads an image or document, a new file is created on the file system.
     Even if the file (name) already exists, because in these cases, Drupal does not ask what to do, but just adds an underscore and a number to the filename to make it unique.
