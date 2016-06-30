@@ -13,14 +13,16 @@
 class DuplicateImagesSearch extends DuplicateImagesBaseForm {
 
   /**
+   * List of duplicates found.
+   *
    * @var string[]
-   *   List of duplicates found.
    */
   protected $duplicates = array();
 
   /**
+   * List of suspicious images found (names look equal but size/md5 differs).
+   *
    * @var string[]
-   *   List of suspicious images found (names look equal but size/md5 differs).
    */
   protected $suspicious = array();
 

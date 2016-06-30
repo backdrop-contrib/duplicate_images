@@ -14,8 +14,9 @@
  */
 abstract class DuplicateImagesBaseForm {
   /**
+   * Step.
+   *
    * @var string
-   *   Step.
    */
   protected $step;
 
@@ -121,7 +122,7 @@ abstract class DuplicateImagesBaseForm {
    *   Image style to use for the thumbnail.
    * @param string $large_style
    *   Image style to link the thumbnail to.
-   * @param $i
+   * @param int $i
    *   Postfix to use in colorbox gallery id.
    *
    * @return string

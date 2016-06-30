@@ -202,7 +202,7 @@ class DuplicateImagesDelete extends DuplicateImagesBaseForm {
    *   List of files names to delete.
    *
    * @return bool[]
-   *   array[file_name => bool] (success)
+   *   array[file_name => bool] (success).
    */
   protected function deleteFiles(array $file_deletes) {
     $results = array();
@@ -216,7 +216,7 @@ class DuplicateImagesDelete extends DuplicateImagesBaseForm {
    * Deletes a file and its possible image style derivatives.
    *
    * @param string $file_name
-   *   file_name.
+   *   File name.
    *
    * @return bool
    *   true on success, false on failure.
@@ -230,7 +230,7 @@ class DuplicateImagesDelete extends DuplicateImagesBaseForm {
    * Deletes the image derivatives of a file.
    *
    * @param string $file_name
-   *   file_name.
+   *   File name.
    */
   protected function deleteDerivatives($file_name) {
     $image_styles = image_styles();
