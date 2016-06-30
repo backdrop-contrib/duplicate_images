@@ -76,7 +76,7 @@ In a multi step form (like update.php) this module executes the following steps:
 - Found textual usages are changed to refer to the URI of the original document.
 - Note 1: this phase uses the entity_save() function of the entity api (contrib
   and thus a dependency) to ensure that caches are cleared, hooks are called,
-  file_usage is update, rules are executed, etc.
+  file_usage is updated, rules are executed, etc.
 - Note 2: this phase does keep track of failed updates so that the next phase
   can skip managed file records or files that are still being referred to.
 

@@ -8,7 +8,7 @@
 /**
  * Implements hook_help().
  */
-function duplicate_help($path) {
+function duplicate_images_help($path) {
   switch ($path) {
     // Main module help for this module
     case 'admin/help#duplicate_images':
