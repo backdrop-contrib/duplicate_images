@@ -88,7 +88,7 @@ class DuplicateImagesSearch extends DuplicateImagesBaseForm {
     );
     $form['options']['max_duplicates'] = array(
       '#type' => 'textfield',
-      '#title' => t('Maximum number of duplicte images to process'),
+      '#title' => t('Maximum number of duplicate images to process'),
       '#default_value' => '',
       '#description' => t('If your system does not allow to reset the time limit or you hate long page waits, you can limit the number of duplicate images that will be searched for and processed. Leave empty to process all duplicates at once.'),
       '#size' => 4,
