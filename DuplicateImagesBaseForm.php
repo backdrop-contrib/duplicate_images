@@ -138,7 +138,7 @@ abstract class DuplicateImagesBaseForm {
     }
     else {
       $file = new stdClass();
-      $file->mimetype = file_get_mimetype($file_name);
+      $file->filemime = file_get_mimetype($file_name);
       $result = theme('file_icon', array('file' => $file, 'alt' => ''));
     }
 
