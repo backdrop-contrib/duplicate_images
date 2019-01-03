@@ -35,7 +35,8 @@ Although this module has been tested and found to be working correctly, on a
 number of our own sites, it may fail in your situation, e.g. due to:
 - Contrib modules not used by us that store references to either the managed
   files or the files directly. (media?)
-- Low and unalterable, value of max_execution_time.
+- Low and unalterable value of max_execution_time.
+- Low and unalterable value of max_input_vars.
 - Weird file or directory permissions.
 - Missing permissions. All tests were done using the administrator role, and
   afaik, permissions are for the UI, not for calling API functions but I am not

@@ -90,7 +90,7 @@ class DuplicateImagesSearch extends DuplicateImagesBaseForm {
       '#type' => 'textfield',
       '#title' => t('Maximum number of duplicate images to process'),
       '#default_value' => '',
-      '#description' => t('If your system does not allow to reset the time limit or you hate long page waits, you can limit the number of duplicate images that will be searched for and processed. Leave empty to process all duplicates at once.'),
+      '#description' => t('If your system does not allow to reset the time limit (max_execution_time) or the maximum number of fields on a post (max_input_vars), or you just hate long page waits, you can limit the number of duplicate images that will be searched for and processed. Leave empty to process all duplicates at once.'),
       '#size' => 4,
     );
 
