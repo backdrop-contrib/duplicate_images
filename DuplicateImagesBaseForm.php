@@ -54,6 +54,8 @@ abstract class DuplicateImagesBaseForm {
    *
    * @return array[]
    *   Step specific form fields.
+   *
+   * @throws \Exception
    */
   public function fields(array $form, array &$form_state) {
     $this->step = static::getStep();
