@@ -97,9 +97,12 @@ This module does work with:
 - Insert: links to images inserted into body fields (even if referring to a
   derivative image) are found and corrected.
 - Link: link fields are searched for references to duplicate files.
+- Media Wysiswyg: this module can insert tags into (long) tex fields that are
+  expanded to (derived) images. These taqs refer to managed files by their id
+  and are found and corrected.
 
 Not tested and possibly leading to missing usages:
-- Media, File entity, ...?
+- Other Media modules, File entity, ...?
 
 
 Author

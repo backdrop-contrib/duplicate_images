@@ -153,12 +153,21 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
     );
 
     $options = $this->getFieldsThatMayBeSearched();
-    $form['options']['field_names'] = array(
+    $form['options']['fields_media_tag'] = array(
       '#type' => 'checkboxes',
-      '#title' => t('Fields to look for usages'),
+      '#title' => t('Fields to look for media tag usages'),
+      '#options' => $options,
+      '#default_value' => module_exists('media_wysiwyg') ? array_keys($options) : array(),
+      '#description' => t('Define where to look for media tags referring to managed files. Media tags can be inserted with the !link (sub)module. In principle, when you use this module, all (long) text field_names should be searched for, but if, e.g, you are sure that none of the duplicate images are tagged in some text field(s), you may speed up this phase by deselecting that field.',
+        array('!link' => l(t('Media Wysiwyg'), 'https://www.drupal.org/project/media', array('external' => TRUE)))),
+    );
+
+    $form['options']['fields_uri'] = array(
+      '#type' => 'checkboxes',
+      '#title' => t('Fields to look for image URI usages'),
       '#options' => $options,
       '#default_value' => array_keys($options),
-      '#description' => t('Define where to look for literal usages of the image URI. In principle, all (long) text field_names should be searched for, but if, e.g, you are sure that none of the duplicate images are referred to in some text field, you may speed up this phase by deselecting that field.'),
+      '#description' => t('Define where to look for usages of the image URI. In principle, all (long) text field_names should be searched for, but if, e.g, you are sure that none of the duplicate images are referred to in some text field, you may speed up this phase by deselecting that field.'),
     );
 
     $options = $this->getImageStyles();
@@ -167,7 +176,7 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
       '#title' => t('Image styles to check for in text field_names'),
       '#options' => $options,
       '#default_value' => array_keys($options),
-      '#description' => t('Define what image style URIs to check for when searching text field_names. Normally, all image styles should be searched for. But if you are sure that some image styles are only used in image dield formatters and are never used in (long) text field_names, you may speed up this phase by deselecting that image style. Looking for image derivative usages involves itok token generation and 2 additional queries per style per field instance.'),
+      '#description' => t('Define what image style URIs to check for when searching text field_names. Normally, all image styles should be searched for. But if you are sure that some image styles are only used in image field formatters and are never used in (long) text field_names, you may speed up this phase by deselecting that image style. Looking for image derivative usages involves itok token generation and 2 additional queries per style per field instance.'),
     );
 
     return $form;
@@ -185,10 +194,11 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
     $duplicate_images = array_intersect_key($form_state['duplicate_images'], array_fill_keys($form_state['selected_duplicate_images'], 1));
     $suspicious_images = array_intersect_key($form_state['suspicious_images'], array_fill_keys($form_state['selected_suspicious_images'], 1));
     $managed_files = count(array_filter($form_state['values']['managed_files'])) === 1;
-    $field_names = array_filter($form_state['values']['field_names']);
+    $fields_uri = array_filter($form_state['values']['fields_uri']);
+    $fields_media_tag = array_filter($form_state['values']['fields_media_tag']);
     $image_styles = array_filter($form_state['values']['image_styles']);
 
-    $results = $this->exec($duplicate_images, $suspicious_images, $managed_files, $field_names, $image_styles);
+    $results = $this->exec($duplicate_images, $suspicious_images, $managed_files, $fields_uri, $fields_media_tag, $image_styles);
     $form_state['entity_update_instructions'] = $results[0];
     $form_state['duplicate_references'] = $results[1];
     $form_state['duplicate_managed_files'] = $results[2];
@@ -229,8 +239,10 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
    *   reason) keyed by duplicate file name.
    * @param bool $managed_files
    *   Also search through managed files?
-   * @param string[] $field_names
-   *   List of field names to search through.
+   * @param string[] $fields_uri
+   *   List of field names to search through for URI usage.
+   * @param array $fields_media_tag
+   *   List of field names to search through for media tag (fid) usage.
    * @param string[] $image_styles
    *   List of image styles to search for referencing URIs.
    *
@@ -243,20 +255,26 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
    *     keyed by entity type and id.
    *   - List of fid => duplicate pairs.
    */
-  public function exec(array $duplicate_images, array $suspicious_images, $managed_files, array $field_names, array $image_styles) {
+  public function exec(array $duplicate_images, array $suspicious_images, $managed_files, array $fields_uri, array $fields_media_tag, array $image_styles) {
     $this->initStreamInfo();
 
-    $fields = array();
-    foreach ($field_names as $field_name) {
-      $fields[$field_name] = field_info_field($field_name);;
-      $fields[$field_name]['search_columns'] = $this->getColumnsByFieldType($fields[$field_name]['type']);
+    $field_infos_uri = array();
+    foreach ($fields_uri as $field_name) {
+      $field_infos_uri[$field_name] = field_info_field($field_name);;
+      $field_infos_uri[$field_name]['search_columns'] = $this->getColumnsByFieldType($field_infos_uri[$field_name]['type']);
+    }
+
+    $field_infos_media_tag = array();
+    foreach ($fields_media_tag as $field_name) {
+      $field_infos_media_tag[$field_name] = field_info_field($field_name);;
+      $field_infos_media_tag[$field_name]['search_columns'] = $this->getColumnsByFieldType($field_infos_media_tag[$field_name]['type']);
     }
 
     foreach ($duplicate_images as $duplicate => $original) {
-      $this->findUsages($duplicate, $original, $managed_files, $fields, $image_styles);
+      $this->findUsages($duplicate, $original, $managed_files, $field_infos_uri, $field_infos_media_tag, $image_styles);
     }
     foreach ($suspicious_images as $duplicate => $duplicate_info) {
-      $this->findUsages($duplicate, $duplicate_info['original'], $managed_files, $fields, $image_styles);
+      $this->findUsages($duplicate, $duplicate_info['original'], $managed_files, $field_infos_uri, $field_infos_media_tag, $image_styles);
     }
 
     return array($this->updateInstructions, $this->duplicateReferences, $this->duplicateManagedFiles);
@@ -274,21 +292,23 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
    *   Name of the original image.
    * @param bool $managed_files
    *   Also search in the managed files table.
-   * @param array[] $fields
-   *   Array of field info arrays.
+   * @param array[] $field_infos_uri
+   *   Array of field info arrays of fields to search for URI usage.
+   * @param array $field_infos_media_tag
+   *   Array of field info arrays of fields to search for media tag (fid) usage.
    * @param string[] $image_styles
    *   List of image styles to search for usages.
    */
-  protected function findUsages($duplicate, $original, $managed_files, array $fields, array $image_styles) {
+  protected function findUsages($duplicate, $original, $managed_files, array $field_infos_uri, array $field_infos_media_tag, array $image_styles) {
     if ($managed_files) {
-      $this->findUsagesAsManagedFile($duplicate, $original);
+      $this->findUsagesAsManagedFile($duplicate, $original, $field_infos_media_tag);
     }
 
-    foreach ($fields as $field) {
+    foreach ($field_infos_uri as $field) {
       // Try to prevent time-outs by restarting the timer.
       @set_time_limit(ini_get('max_execution_time'));
 
-      $this->findUsagesByField($field, FALSE, $duplicate, $original, $image_styles);
+      $this->findUriUsagesByField($field, $duplicate, $original, $image_styles);
     }
   }
 
@@ -301,8 +321,10 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
    *   Name of the duplicate image.
    * @param string $original
    *   Name of the original image.
+   * @param array $field_infos_media_tag
+   *   List of field info arrays of fields to search for media tag (fid) usage.
    */
-  protected function findUsagesAsManagedFile($duplicate, $original) {
+  protected function findUsagesAsManagedFile($duplicate, $original, array $field_infos_media_tag) {
     // Find the managed file object (at most 1 object as 'uri' is unique) for
     // the duplicate.
     $managed_duplicate = file_load_multiple(array(), array('uri' => $duplicate));
@@ -323,7 +345,7 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
         // have to be updated and can be deleted after the update phase when no
         // references to it remain.
         $this->duplicateManagedFiles[$managed_duplicate->fid] = $duplicate;
-        $this->findUsagesOfManagedFile($managed_duplicate, $this->originalIds[$original]);
+        $this->findUsagesOfManagedFile($managed_duplicate, $this->originalIds[$original], $field_infos_media_tag);
       }
       else {
         // The $original has not yet been registered as a managed file. We will
@@ -346,8 +368,12 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
   /**
    * Finds the entities referring to this managed file.
    *
-   * These references come from either file field, image fields, or from custom
-   * managed file reference fields.
+   * These references come from either:
+   * - File fields
+   * - Image fields
+   * - Custom managed file reference fields.
+   * - Media tags in (long) text fields. These will look like
+   *   [[{"fid":"12345","view_mode":"media_large", ...}]]
    *
    * Update instructions are added to $this->usage.
    *
@@ -355,11 +381,17 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
    *   Managed file record for a duplicate image.
    * @param int $original_fid
    *   Fid of the original.
+   * @param array $field_infos_media_tag
+   *   List of field info arrays of fields to search for media tag (fid) usage.
    */
-  protected function findUsagesOfManagedFile($managed_duplicate, $original_fid) {
+  protected function findUsagesOfManagedFile($managed_duplicate, $original_fid, array $field_infos_media_tag) {
     $this->findUsagesByUserPicture($managed_duplicate->fid, $original_fid, $managed_duplicate->uri);
     foreach ($this->getFieldsReferringToManagedFiles() as $field) {
-      $this->findUsagesByField($field, TRUE, $managed_duplicate->fid, $original_fid, array());
+      $this->findFidUsagesByField($field, $managed_duplicate->fid, $original_fid);
+    }
+
+    foreach ($field_infos_media_tag as $field_info) {
+      $this->findMediaTagUsagesByField($field_info, $managed_duplicate->fid, $original_fid);
     }
   }
 
@@ -375,6 +407,7 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
    */
   protected function findUsagesByUserPicture($duplicate_fid, $original_fid, $duplicate) {
     $table_name = 'users';
+    /** @noinspection PhpUndefinedMethodInspection */
     $uids = db_select($table_name)
       ->fields($table_name, array('uid'))
       ->condition('picture', $duplicate_fid)
@@ -387,77 +420,132 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
   }
 
   /**
-   * Finds entities for which the given field is referring to a duplicate.
+   * Finds entities for which the field is referring to the fid of a duplicate.
    *
-   * The search is done in only some of the columns of the specified field.
+   * The search is done in only some of the columns of the specified field. The
+   * search is also done on URIs for images derived form the original via an
+   * image style.
    *
    * Update instructions are added to $this->usage.
    *
-   * @param array $field
+   * @param array $field_info
    *   Field info array + an additional column 'search_columns'.
-   * @param bool $exact
-   *   Whether the search is exact, for the whole value of the field, or
-   *   partial, i.e. the (string )value is contained within the (string) field
-   *   value.
-   * @param string|int $duplicate
-   *   Fid or file name to search for.
-   * @param string|int $original
-   *   Fid or file name to replace the found value with. Note that this step
+   * @param int $duplicate
+   *   Fid to search for.
+   * @param int $original
+   *   Fid to replace the found value with. Note that this step
    *   does not actually update, This parameter is used to create an "update
    *   instruction".
-   * @param string[] $image_styles
-   *   List of image styles to search for usages.
    */
-  protected function findUsagesByField($field, $exact, $duplicate, $original, array $image_styles) {
-    if (!$exact) {
-      /** @var DrupalLocalStreamWrapper $duplicate_stream */
-      $scheme = file_uri_scheme($duplicate);
-      $base_url = $this->streamInfo[$scheme]['base_url'];
-      $duplicate_target = file_uri_target($duplicate);
-      $duplicate_uri = $base_url . $duplicate_target;
-      $original_target = file_uri_target($original);
-      $original_uri = $base_url . $original_target;
-
-      $info = image_get_info($duplicate);
-      $is_image = $info && !empty($info['extension']);
+  protected function findFidUsagesByField($field_info, $duplicate, $original) {
+    foreach ($field_info['search_columns'] as $column) {
+      $this->findUsagesByFieldColumn($field_info, $column, TRUE, $duplicate, $original, $duplicate);
     }
+  }
 
-    foreach ($field['search_columns'] as $column) {
-      $this->findUsagesByFieldColumn($field, $column, $exact, $duplicate, $original, $duplicate);
-      if (!$exact) {
-        // Also search through all values of this field column, looking for
-        // textual occurrences of the duplicate in url notation.
-        /** @noinspection PhpUndefinedVariableInspection */
-        $this->findUsagesByFieldColumn($field, $column, $exact, $duplicate_uri, $original_uri, $duplicate);
+  /**
+   * Finds entities for which the field is referring to a URI of a duplicate.
+   *
+   * The field is only searched for in the columns specified in
+   * $field_info[search_columns]. Those columns are searched for:
+   * 1 The file name in scheme notation, e.g. pubic://my-image_0.jpg.
+   * 2 The file as external URL, e.g. sites/default/files/my-image_0.jpg.
+   * 3 External URLs for derived images, e.g.
+   *   sites/default/files/styles/medium/public/my-image_0.jpg.
+   *
+   * Update instructions are added to $this->usage.
+   *
+   * @param array $field_info
+   *   Field info array + an additional column 'search_columns'.
+   * @param string $duplicate
+   *   File name, in scheme notation, to search for.
+   * @param string $original
+   *   File name, in scheme notation, to replace the found value with. Note that
+   *   this step does not actually update, This parameter is used to create an
+   *   "update instruction".
+   * @param string[] $image_styles
+   *   List of image styles to search for derived usages.
+   */
+  protected function findUriUsagesByField($field_info, $duplicate, $original, array $image_styles) {
+    /** @var DrupalLocalStreamWrapper $duplicate_stream */
+    $scheme = file_uri_scheme($duplicate);
+    $base_url = $this->streamInfo[$scheme]['base_url'];
+    $duplicate_target = file_uri_target($duplicate);
+    $duplicate_uri = $base_url . $duplicate_target;
+    $original_target = file_uri_target($original);
+    $original_uri = $base_url . $original_target;
 
-        // Using the insert module (or for that matter any module that inserts
-        // img or link tags in text), the reference may also be to a
-        // derivative image of the duplicate. This will have the form:
-        // {stream_base_url}/styles/{style_name}/scheme/path[?itok={token}].
-        // The optional itok token depends on:
-        // - the file name: we have to replace any token value as well.
-        // - the style name: we have to know the style name to be able to
-        //   compute the new token.
-        // So we search for all styles separately so that we can compute the
-        // token value to replace.
-        /** @noinspection PhpUndefinedVariableInspection */
-        if ($is_image) {
-          foreach ($image_styles as $style_name) {
-            /* @noinspection PhpUndefinedVariableInspection */
-            $duplicate_style_uri = $base_url . 'styles/' . $style_name . '/' . $scheme . '/' . $duplicate_target;
-            /* @noinspection PhpUndefinedVariableInspection */
-            $original_style_uri = $base_url . 'styles/' . $style_name . '/' . $scheme . '/' . $original_target;
+    $info = image_get_info($duplicate);
+    $is_image = $info && !empty($info['extension']);
 
-            $itok_duplicate = image_style_path_token($style_name, $duplicate);
-            $itok_original = image_style_path_token($style_name, $original);
-            $duplicate_style_itok_uri = $duplicate_style_uri . '?' . IMAGE_DERIVATIVE_TOKEN . '=' . $itok_duplicate;
-            $original_style_itok_uri = $original_style_uri . '?' . IMAGE_DERIVATIVE_TOKEN . '=' . $itok_original;
+    foreach ($field_info['search_columns'] as $column) {
+      // 1 The file name in scheme notation.
+      $this->findUsagesByFieldColumn($field_info, $column, FALSE, $duplicate, $original, $duplicate);
 
-            $this->findUsagesByFieldColumn($field, $column, $exact, $duplicate_style_itok_uri, $original_style_itok_uri, $duplicate);
-            $this->findUsagesByFieldColumn($field, $column, $exact, $duplicate_style_uri, $original_style_uri, $duplicate);
-          }
+      // 2 The file as external URL.
+      $this->findUsagesByFieldColumn($field_info, $column, FALSE, $duplicate_uri, $original_uri, $duplicate);
+
+      // 3 External URLs for derived images.
+      // Using the insert module (or for that matter any module that inserts
+      // img or link tags in text), the reference may also be to a
+      // derivative image of the duplicate. This will have the form:
+      // {stream_base_url}/styles/{style_name}/scheme/path[?itok={token}].
+      // The optional itok token depends on:
+      // - the file name: we have to replace any token value as well.
+      // - the style name: we have to know the style name to be able to
+      //   compute the new token.
+      // So we search for all styles separately so that we can compute the
+      // token value to replace.
+      if ($is_image) {
+        foreach ($image_styles as $style_name) {
+          $duplicate_style_uri = $base_url . 'styles/' . $style_name . '/' . $scheme . '/' . $duplicate_target;
+          $original_style_uri = $base_url . 'styles/' . $style_name . '/' . $scheme . '/' . $original_target;
+
+          $itok_duplicate = image_style_path_token($style_name, $duplicate);
+          $itok_original = image_style_path_token($style_name, $original);
+          $duplicate_style_itok_uri = $duplicate_style_uri . '?' . IMAGE_DERIVATIVE_TOKEN . '=' . $itok_duplicate;
+          $original_style_itok_uri = $original_style_uri . '?' . IMAGE_DERIVATIVE_TOKEN . '=' . $itok_original;
+
+          $this->findUsagesByFieldColumn($field_info, $column, FALSE, $duplicate_style_itok_uri, $original_style_itok_uri, $duplicate);
+          $this->findUsagesByFieldColumn($field_info, $column, FALSE, $duplicate_style_uri, $original_style_uri, $duplicate);
         }
       }
+    }
+  }
+
+  /**
+   * Finds entities for which the field is referring to the fid of a duplicate.
+   *
+   * The field is only searched for in the columns specified in
+   * $field_info[search_columns]. Those columns are searched for:
+   * 1 The fid as it appears as first field in a media tag, e.g.
+   *   [[{"fid":"12345","view_mode":"media_large", ...}]]
+   * 2 The fid as it appears as next field in a media tag, e.g.
+   *   [[{...,"fid":"12345","view_mode":"media_large", ...}]]
+   * Note: so far, we have not seen any occurrences where the fid field was the
+   *   last field in a media tag.
+   *
+   * Update instructions are added to $this->usage.
+   *
+   * @param array $field_info
+   *   Field info array + an additional column 'search_columns'.
+   * @param int $duplicate
+   *   Fid to search for.
+   * @param int $original
+   *   Fid to replace the found value with. Note that this step does not
+   *   actually update, This parameter is used to create an "update
+   *   instruction".
+   */
+  protected function findMediaTagUsagesByField($field_info, $duplicate, $original) {
+    $search =  sprintf('[[{"fid":"%d",', $duplicate);
+    $replace = sprintf('[[{"fid":"%d",', $original);
+    foreach ($field_info['search_columns'] as $column) {
+      $this->findUsagesByFieldColumn($field_info, $column, FALSE, $search, $replace, $duplicate);
+    }
+    $search =  sprintf(',"fid":"%d",', $duplicate);
+    $replace = sprintf(',"fid":"%d",', $original);
+    foreach ($field_info['search_columns'] as $column) {
+        $this->findUsagesByFieldColumn($field_info, $column, FALSE, $search, $replace, $duplicate);
     }
   }
 
@@ -581,18 +669,22 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
    * Determine whether a field references files stored in {file_managed}.
    *
    * @param array $field
-   *   A field array.
+   *   A field definition array.
    *
    * @return string|false
    *   The field column if the field references {file_managed}.fid, typically
    *   fid, FALSE if it does not.
    */
   protected function fileFieldFindFileReferenceColumn($field) {
-    foreach ($field['foreign keys'] as $data) {
-      if ($data['table'] == 'file_managed') {
-        foreach ($data['columns'] as $field_column => $column) {
-          if ($column === 'fid') {
-            return $field_column;
+    // I think that $field['foreign keys'] should be set, but we got reports
+    // about "Notice: Undefined index: foreign keys in...".
+    if (isset($field['foreign keys'])) {
+      foreach ($field['foreign keys'] as $data) {
+        if ($data['table'] == 'file_managed') {
+          foreach ($data['columns'] as $field_column => $column) {
+            if ($column === 'fid') {
+              return $field_column;
+            }
           }
         }
       }
