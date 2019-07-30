@@ -25,7 +25,7 @@ class DuplicateImagesUpdate extends DuplicateImagesBaseForm {
   protected function getHelp() {
     return t('!step: !help', array(
       '!step' => t('Update usages'),
-      '!help' => t('Updates the found usages to use the original image. The result will be that duplicate images are no longer referred to. Updates are done using the function entity_save(), so caches should be cleared, file usage updated, rules executed, etc.'),
+      '!help' => t('Updates the found usages to use the original image. The result will be that duplicate images are no longer referred to. Updates are done using the function entity_save(), so caches will be cleared, file usages updated, rules executed, etc.'),
     ));
   }
 

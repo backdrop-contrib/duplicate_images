@@ -76,7 +76,7 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
   protected function getHelp() {
     return t('!step: !help', array(
       '!step' => t('Find usages'),
-      '!help' => t('Defines where to look for the found duplicate images are used. The result will be a list of usages of the duplicates.'),
+      '!help' => t('Defines where to look for usages of the duplicate images found. The result will be a list of usages of the duplicates.'),
     ));
   }
 
@@ -620,18 +620,12 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
         $result = array('url');
         break;
 
-      case 'text':
-        $result = array('value');
-        break;
-
-      case 'text_long':
-        $result = array('value');
-        break;
-
       case 'text_with_summary':
         $result = array('value', 'summary');
         break;
 
+      case 'text':
+      case 'text_long':
       default:
         $result = array('value');
         break;
@@ -701,13 +695,11 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
     $this->streamInfo['public'] = array(
       'base_url' => $stream->getDirectoryPath() . '/',
       'style_url' => '/public/',
-      'offset' => $GLOBALS['base_url'] . '/',
     );
 
     $this->streamInfo['private'] = array(
       'base_url' => 'system/files/',
       'style_url' => '/private/',
-      'offset' => $GLOBALS['base_url'] . '/',
     );
   }
 

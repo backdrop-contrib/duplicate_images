@@ -230,48 +230,86 @@ class DuplicateImagesSearch extends DuplicateImagesBaseForm {
       }
     }
 
-    // Compare the list of files to spot duplicates.
-    $duplicates = $this->getDuplicatesByPattern($files);
+    // Group the list of files by possible duplicates.
+    $duplicates = $this->groupDuplicatesByPattern($files);
 
-    // And add them if their contents is the same.
-    foreach ($duplicates as $duplicate => $original) {
-      $duplicate = $folder . $duplicate;
-      $original = $folder . $original;
-      // Getting 2 md5's for large files when they differ on the 5th byte is
-      // not efficient, but assuming that the the probability that these files
-      // are indeed equal is close to 1, it might be more efficient to let PHP
-      // check it internally and thus not to try to outperform native PHP
-      // functions.
-      if (filesize($duplicate) === filesize($original)) {
-        if (!$use_md5 || md5_file($duplicate) === md5_file($original)) {
-          $reason = NULL;
+    // And add them if their contents is indeed the same.
+    foreach ($duplicates as $base_name => $file_group) {
+      // A group of files can only contain duplicates if it contains at least 2
+      // files.
+      if (count($file_group) >= 2) {
+        // Collect file size and md5 for each file in the set.
+        $file_infos = array();
+        $is_first = TRUE;
+        foreach ($file_group as $file_name) {
+          // Getting 2 md5's for large files when they differ on the 5th byte is
+          // not efficient, but assuming that the the probability that these
+          // files are indeed equal is close to 1, it might be more efficient to
+          // let PHP check it internally and thus not to try to outperform
+          // native PHP functions.
+          $file_infos[$file_name] = array(
+            'size' => filesize($folder . $file_name),
+            'md5' => $use_md5 ? md5_file($folder . $file_name) : NULL,
+            'status' => $is_first ? 'original' : NULL,
+          );
+          $is_first = FALSE;
         }
-        else {
-          $reason = 'md5';
-        }
-      }
-      else {
-        $reason = 'filesize';
-      }
 
-      if ($reason === NULL) {
-        // Confirmed duplicate: add to $result.
-        $this->duplicates[$duplicate] = $original;
-        if (is_int($max_duplicates) && count($this->duplicates) >= $max_duplicates) {
-          throw new RuntimeException('Maximum number of images reached');
-        }
-      }
-      else {
-        // Suspicious but not a real duplicate: add to $suspicious.
-        $this->suspicious[$duplicate] = array(
-          'duplicate' => $duplicate,
-          'original' => $original,
-          'reason' => $reason,
-        );
-      }
+        // I have encountered a situation where I had 3 possible duplicates
+        // (based on pattern): img.jp, img_0.jpg, and img_1.jpg. It turned out
+        // that img_0.jpg and img_1.jpg were duplicates of each other while
+        // img.jpg was another image.
+        // So, compare all files with all the files after it: compare 1 with 2,
+        // 1 with 3, and 1 with 4; then 2 with 3, and 2 with 4; then 3 with 4.
+        do {
+          // Compare the 1st file against the others.
+          $file_name = array_shift($file_group);
+          foreach ($file_group as $possible_duplicate) {
+            if ($file_infos[$file_name]['status'] !== 'duplicate') {
+              if ($file_infos[$file_name]['size'] === $file_infos[$possible_duplicate]['size']) {
+                if ($file_infos[$file_name]['md5'] === $file_infos[$possible_duplicate]['md5']) {
+                  // Confirmed duplicate: add to $result and we do no longer have
+                  // to compare it against the other remaining files.
+                  $this->duplicates[$folder . $possible_duplicate] = $folder . $file_name;
+                  $file_infos[$possible_duplicate]['status'] = 'duplicate';
 
-      // Try to prevent time-outs by restarting the timer.
-      @set_time_limit(ini_get('max_execution_time'));
+                  // Break on max duplicates to process if set so.
+                  if (is_int($max_duplicates) && count($this->duplicates) >= $max_duplicates) {
+                    throw new RuntimeException('Maximum number of images reached');
+                  }
+                }
+                else {
+                  if (!isset($file_infos[$possible_duplicate]['status'])) {
+                    $file_infos[$possible_duplicate]['status'] = 'md5';
+                  }
+                }
+              }
+              else {
+                if (!isset($file_infos[$possible_duplicate]['status'])) {
+                  $file_infos[$possible_duplicate]['status'] = 'file size';
+                }
+              }
+            }
+          }
+        } while (count($file_group) >= 2);
+
+        // All files that did not match any other file (i.e. with status !=
+        // duplicate or original) are treated as suspicious.
+        reset($file_infos);
+        $original = $folder . key($file_infos);
+        foreach ($file_infos as $file_name => $file_info) {
+          if ($file_info['status'] !== 'original' && $file_info['status'] !== 'duplicate') {
+            $this->suspicious[$folder . $file_name] = array(
+              'duplicate' => $folder . $file_name,
+              'original' => $original,
+              'reason' => $file_info['status'],
+            );
+          }
+        }
+
+        // Try to prevent time-outs by restarting the timer.
+        @set_time_limit(ini_get('max_execution_time'));
+      }
     }
 
     // Recursively call search() on each sub folder. Excluded sub_folders only
@@ -282,40 +320,56 @@ class DuplicateImagesSearch extends DuplicateImagesBaseForm {
   }
 
   /**
-   * Retrieves (possible) duplicates from a list of files.
+   * Retrieves possible duplicates, based on pattern, from a set of file names.
    *
    * On upload, Drupal will attach an underscore and a sequence number to the
-   * basename of files whose name already exist. Thus image.ext becomes
-   * image_0.ext on 2nd upload, image_1.ext on 3rd upload, etc.
+   * basename of files whose name already exist. Thus image.jpg becomes
+   * image_0.jpg on 2nd upload, image_1.jpg on 3rd upload, etc.
+   *
+   * Cases we have to consider:
+   * - image.jpg and image_0.jpg exists: consider image_0.jpg as possible
+   *   duplicate of image.jpg
+   * - image_0.jpg and image_1.jpg exists, but image.jpg does not exist:
+   *   possibly image.jpg has been uploaded 3 times, but the first upload has
+   *   already been removed. Consider image_1.jpg as possible duplicate of
+   *   image_0.jpg (issue [#3058162]).
+   *
+   * To tackle the 2nd case, we keep track of a list of "base names": everything
+   * before the last _ in the file name plus its extension (we don't want to
+   * match img.jpg and img_1.png). However as many digital cameras use a naming
+   * scheme like img_<nnnn>.jpg or img_<yymmdd_hhmmss>.jpg, we will restrict the
+   * part after the last _ to at most 2 digits (100 duplicate uploads).
    *
    * @param string[] $files
    *   List of file names without folder part.
    *
-   * @return string[]
-   *   List of possible duplicates (keys) and the file they might be a duplicate
-   *   of (values).
+   * @return string[][]
+   *   List of sets of possible duplicates keyed by the base name (file name
+   *   without the finishing _n[n] but with its extension).
    */
-  protected function getDuplicatesByPattern(array $files) {
+  protected function groupDuplicatesByPattern(array $files) {
     $result = array();
 
     foreach ($files as $file) {
       // Check if the basename has the format to possibly be a duplicate.
       $parts = pathinfo($file);
-      if (!empty($parts['filename'])) {
+      if (!empty($parts['filename']) && !empty($parts['extension'])) {
+        // Get base name.
+        $base_name = $parts['basename'];
         $matches = array();
-        if (preg_match('/^(.+)_(\d+)$/', $parts['filename'], $matches) === 1) {
-          // It might be a duplicate: construct the filename it would be a
-          // duplicate of: basename without underscore and sequence number plus
-          // same extension.
-          $duplicate_of = $matches[1];
-          if (isset($parts['extension'])) {
-            $duplicate_of .= '.' . $parts['extension'];
-          }
-          // And if that indeed exists, consider it as duplicate for now (more
-          // checks like file size or file contents may follow).
-          if (in_array($duplicate_of, $files)) {
-            $result[$file] = $duplicate_of;
-          }
+        $match = preg_match('/^(.+)(_(\d\d?))$/', $parts['filename'], $matches);
+        if ($match) {
+          $base_name = $matches[1] . '.' . $parts['extension'];
+        }
+
+        // Has this base name already been encountered before?
+        if (!array_key_exists($base_name, $result)) {
+          // No: a new base name.
+          $result[$base_name] = array($file);
+        }
+        else {
+          // Yes: this might be a duplicate.
+          $result[$base_name][] = $file;
         }
       }
     }
