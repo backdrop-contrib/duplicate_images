@@ -39,7 +39,7 @@ class DuplicateImagesSearch extends DuplicateImagesBaseForm {
   protected function getHelp() {
     return t('!step: !help', array(
       '!step' => t('Search duplicates'),
-      '!help' => t('Defines and restricts the search for duplicate images. The result will be a list of sets of duplicate images. Duplicate images are found by looking at their file name, file size and md5 hash. When you upload a duplicate image, Drupal will append an underscore and a sequence number to the base name of the file. So the 1st check on file name is to check for this pattern.'),
+      '!help' => t('Defines and restricts the search for duplicate images. The result will be a list of sets of duplicate images. Duplicate images are found by looking at their file name, file size and md5 hash. When you upload a duplicate image, Backdrop will append an underscore and a sequence number to the base name of the file. So the 1st check on file name is to check for this pattern.'),
     ));
   }
 
@@ -322,7 +322,7 @@ class DuplicateImagesSearch extends DuplicateImagesBaseForm {
   /**
    * Retrieves possible duplicates, based on pattern, from a set of file names.
    *
-   * On upload, Drupal will attach an underscore and a sequence number to the
+   * On upload, Backdrop will attach an underscore and a sequence number to the
    * basename of files whose name already exist. Thus image.jpg becomes
    * image_0.jpg on 2nd upload, image_1.jpg on 3rd upload, etc.
    *

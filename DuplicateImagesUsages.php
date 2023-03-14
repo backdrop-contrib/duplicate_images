@@ -94,26 +94,27 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
       '#tree' => FALSE,
     );
 
-    $duplicate_images = $form_state['duplicate_images'];
+    $options = array(
+      'none' => 'None',
+    );
+    $duplicate_images = (!empty($form_state['duplicate_images'])) ? $form_state['duplicate_images'] : array();
     foreach ($duplicate_images as $duplicate => &$original) {
       $original = "$duplicate: $original";
     }
-    if (empty($duplicate_images)) {
-      $duplicate_images = array();
-    }
-    $count = (!empty($duplicate_images)) ? count($duplicate_images) : 0;
     $form['results']['duplicate_images'] = array(
       '#type' => 'checkboxes',
-      '#title' => t('Duplicates found (@count)', array('@count' => $count)),
-      '#options' => $duplicate_images,
-      '#default_value' => (!empty($duplicate_images)) ? array_keys($duplicate_images) : array(),
+      '#title' => t('Duplicates found (@count)', array('@count' => count($duplicate_images))),
+      '#options' => array_merge($options, $duplicate_images),
+      '#default_value' => array_keys($duplicate_images),
       '#description' => t('These are the duplicates found.'),
     );
 
-    $thumbnail_style = $form_state['thumbnail_style'];
+    $thumbnail_style = !empty($form_state['thumbnail_style']) ? $form_state['thumbnail_style'] : 'thumbnail';
     $large_style = $form_state['large_style'];
-    $suspicious_images = $form_state['suspicious_images'];
-    $count = (!empty($suspicious_images)) ? count($suspicious_images) : 0;
+    $suspicious_images = (!empty($form_state['suspicious_images'])) ? $form_state['suspicious_images'] : array();
+    $options = array(
+      'none' => 'None',
+    );
     $i = 1;
     foreach ($suspicious_images as &$suspicious_info) {
       $thumbs = '';
@@ -132,8 +133,8 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
     }
     $form['results']['suspicious_images'] = array(
       '#type' => 'checkboxes',
-      '#title' => t('Suspicious images found (@count)', array('@count' => $count)),
-      '#options' => $suspicious_images,
+      '#title' => t('Suspicious images found (@count)', array('@count' => count($suspicious_images))),
+      '#options' => array_merge($options, $suspicious_images),
       '#default_value' => array(),
       '#description' => t('These are images that have the pattern to be a duplicate of another image but do differ for the indicated reason.'),
     );

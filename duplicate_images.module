@@ -97,8 +97,6 @@ function duplicate_images_get_form_class($step) {
     $steps = DuplicateImagesBaseForm::getSteps();
     if (!array_key_exists($step, $steps)) {
       // Oops, don't play with us.
-
-
       throw new InvalidArgumentException("Unknown operation");
     }
     $class = 'DuplicateImages' . ucfirst($step);

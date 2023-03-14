@@ -35,7 +35,7 @@ class DuplicateImagesIntro extends DuplicateImagesBaseForm {
 
     return t('<h2>This module deduplicates images and other files on the public or private file system.</h2>
     <p>Whenever a user uploads an image or document, a new file is created on the file system.
-    Even if the file (name) already exists, because in these cases, Drupal does not ask what to do, but just adds an underscore and a number to the filename to make it unique.
+    Even if the file (name) already exists, because in these cases, Backdrop does not ask what to do, but just adds an underscore and a number to the filename to make it unique.
     This module is able to detect and correct these duplicate files.</p>
     <p>Step by step it: searches for duplicate images; searches for their usages; updates the usages to refer to the main image; and then deletes the no longer used and referred to duplicates.
     Each step will present its results to allow you to check and double check that the correct actions are taking place.
