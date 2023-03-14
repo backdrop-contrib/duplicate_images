@@ -57,7 +57,7 @@ class DuplicateImagesSearch extends DuplicateImagesBaseForm {
       '#tree' => FALSE,
     );
 
-    $is_private_path_defined = (bool) variable_get('file_private_path', FALSE);
+    $is_private_path_defined = (bool) config_get('system.core', 'file_private_path');
     $options = array(
       'public://' => 'public://',
     );
@@ -209,7 +209,7 @@ class DuplicateImagesSearch extends DuplicateImagesBaseForm {
     $dirs = array();
     $list = scandir($folder);
 
-    if (drupal_substr($folder, -strlen('/')) !== '/') {
+    if (backdrop_substr($folder, -strlen('/')) !== '/') {
       $folder .= '/';
     }
     foreach ($list as $file) {

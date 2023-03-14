@@ -6,19 +6,6 @@
  */
 
 /**
- * Implements hook_help().
- */
-function duplicate_images_help($path) {
-  switch ($path) {
-    // Main module help for this module.
-    case 'admin/help#duplicate_images':
-      return '<p>' . t('This module allows and administrator to find and remove duplicate images, thereby updating references to duplicate images to point to their original. See the readme.txt for a detailed explanation.') . '</p>';
-
-  }
-  return NULL;
-}
-
-/**
  * Implements hook_permission().
  */
 function duplicate_images_permission() {
@@ -38,7 +25,7 @@ function duplicate_images_menu() {
   $items['admin/config/media/duplicate-images'] = array(
     'title' => 'Duplicate Images',
     'description' => 'Find and remove duplicate images',
-    'page callback' => 'drupal_get_form',
+    'page callback' => 'backdrop_get_form',
     'page arguments' => array('duplicate_images_get_form'),
     'access arguments' => array('use duplicate images'),
     'type' => MENU_NORMAL_ITEM,
@@ -47,7 +34,7 @@ function duplicate_images_menu() {
 }
 
 /**
- * Callback for drupal_get_form() that builds the Duplicate Images form.
+ * Callback for backdrop_get_form() that builds the Duplicate Images form.
  *
  * @param array[] $form
  *   Form.
@@ -57,7 +44,7 @@ function duplicate_images_menu() {
  * @return array[]
  *   Form.
  */
-function duplicate_images_get_form(array $form, array &$form_state) {
+function duplicate_images_get_form(array $form, array $form_state) {
   try {
     $step = DuplicateImagesBaseForm::getStep();
     $form_class = duplicate_images_get_form_class($step);
@@ -70,7 +57,7 @@ function duplicate_images_get_form(array $form, array &$form_state) {
 }
 
 /**
- * Callback for drupal_get_form() that builds the Duplicate Images form.
+ * Callback for backdrop_get_form() that builds the Duplicate Images form.
  *
  * On submit we have to execute the submit handler of the previous step. This
  * way we could keep the fields and processing of it together in 1 class.
@@ -81,7 +68,7 @@ function duplicate_images_get_form(array $form, array &$form_state) {
  *   Form state. Passed by reference, thus can be used to store intermediate
  *   results.
  */
-function duplicate_images_get_form_submit(array $form, array &$form_state) {
+function duplicate_images_get_form_submit(array $form, array $form_state) {
   try {
     $step = DuplicateImagesBaseForm::getPrev(DuplicateImagesBaseForm::getStep());
     $form_class = duplicate_images_get_form_class($step);
@@ -110,6 +97,8 @@ function duplicate_images_get_form_class($step) {
     $steps = DuplicateImagesBaseForm::getSteps();
     if (!array_key_exists($step, $steps)) {
       // Oops, don't play with us.
+
+
       throw new InvalidArgumentException("Unknown operation");
     }
     $class = 'DuplicateImages' . ucfirst($step);
@@ -124,12 +113,27 @@ function duplicate_images_get_form_class($step) {
  * This only occurs when users are playing around or are using the back button.
  */
 function duplicate_images_show_error_message() {
-  drupal_set_message(
+  backdrop_set_message(
     t('An error occurred. Please run the wizard step by step, starting at the !link. Note that for now, you cannot use the back button.',
       array('!link' => l(t('First step'), 'admin/config/media/duplicate-images'))),
     'warning');
-  drupal_set_message(
+  backdrop_set_message(
     t('If this message appears while following the process. See !log_messages for details.',
       array('!log_messages' => l(t('Recent log messages'), 'admin/reports/dblog'))),
     'warning');
+}
+
+/**
+ * Implements hook_autoload_info().
+ */
+function duplicate_images_autoload_info() {
+  return array(
+    'DuplicateImagesBaseForm' => 'DuplicateImagesBaseForm.php',
+    'DuplicateImagesDelete' => 'DuplicateImagesDelete.php',
+    'DuplicateImagesFinished' => 'DuplicateImagesFinished.php',
+    'DuplicateImagesIntro' => 'DuplicateImagesIntro.php',
+    'DuplicateImagesSearch' => 'DuplicateImagesSearch.php',
+    'DuplicateImagesUpdate' => 'DuplicateImagesUpdate.php',
+    'DuplicateImagesUsages' => 'DuplicateImagesUsages.php',
+  );
 }

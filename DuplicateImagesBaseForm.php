@@ -99,7 +99,7 @@ abstract class DuplicateImagesBaseForm {
    */
   protected function getProgress() {
     /** @noinspection PhpIncludeInspection */
-    require_once DRUPAL_ROOT . '/includes/theme.maintenance.inc';
+    require_once BACKDROP_ROOT . '/core/includes/theme.maintenance.inc';
     return theme('task_list', array('items' => static::getSteps(), 'active' => $this->step));
   }
 

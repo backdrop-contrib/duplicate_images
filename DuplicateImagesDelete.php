@@ -223,7 +223,7 @@ class DuplicateImagesDelete extends DuplicateImagesBaseForm {
    */
   protected function deleteFile($file_name) {
     $this->deleteDerivatives($file_name);
-    return drupal_unlink($file_name);
+    return backdrop_unlink($file_name);
   }
 
   /**
@@ -237,7 +237,7 @@ class DuplicateImagesDelete extends DuplicateImagesBaseForm {
     foreach ($image_styles as $image_style) {
       $derivative = image_style_path($image_style['name'], $file_name);
       if (is_file($derivative)) {
-        drupal_unlink($derivative);
+        backdrop_unlink($derivative);
       }
     }
   }

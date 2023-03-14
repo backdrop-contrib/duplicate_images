@@ -31,7 +31,7 @@ class DuplicateImagesIntro extends DuplicateImagesBaseForm {
     else {
       $msg = t('Before you run this wizard, <strong>make sure you have a backup of your database.</strong>');
     }
-    drupal_set_message($msg, 'warning');
+    backdrop_set_message($msg, 'warning');
 
     return t('<h2>This module deduplicates images and other files on the public or private file system.</h2>
     <p>Whenever a user uploads an image or document, a new file is created on the file system.

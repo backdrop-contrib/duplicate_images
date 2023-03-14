@@ -98,17 +98,22 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
     foreach ($duplicate_images as $duplicate => &$original) {
       $original = "$duplicate: $original";
     }
+    if (empty($duplicate_images)) {
+      $duplicate_images = array();
+    }
+    $count = (!empty($duplicate_images)) ? count($duplicate_images) : 0;
     $form['results']['duplicate_images'] = array(
       '#type' => 'checkboxes',
-      '#title' => t('Duplicates found (@count)', array('@count' => count($duplicate_images))),
+      '#title' => t('Duplicates found (@count)', array('@count' => $count)),
       '#options' => $duplicate_images,
-      '#default_value' => array_keys($duplicate_images),
+      '#default_value' => (!empty($duplicate_images)) ? array_keys($duplicate_images) : array(),
       '#description' => t('These are the duplicates found.'),
     );
 
     $thumbnail_style = $form_state['thumbnail_style'];
     $large_style = $form_state['large_style'];
     $suspicious_images = $form_state['suspicious_images'];
+    $count = (!empty($suspicious_images)) ? count($suspicious_images) : 0;
     $i = 1;
     foreach ($suspicious_images as &$suspicious_info) {
       $thumbs = '';
@@ -127,7 +132,7 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
     }
     $form['results']['suspicious_images'] = array(
       '#type' => 'checkboxes',
-      '#title' => t('Suspicious images found (@count)', array('@count' => count($suspicious_images))),
+      '#title' => t('Suspicious images found (@count)', array('@count' => $count)),
       '#options' => $suspicious_images,
       '#default_value' => array(),
       '#description' => t('These are images that have the pattern to be a duplicate of another image but do differ for the indicated reason.'),
@@ -537,12 +542,12 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
    *   instruction".
    */
   protected function findMediaTagUsagesByField($field_info, $duplicate, $original) {
-    $search =  sprintf('[[{"fid":"%d",', $duplicate);
+    $search = sprintf('[[{"fid":"%d",', $duplicate);
     $replace = sprintf('[[{"fid":"%d",', $original);
     foreach ($field_info['search_columns'] as $column) {
       $this->findUsagesByFieldColumn($field_info, $column, FALSE, $search, $replace, $duplicate);
     }
-    $search =  sprintf(',"fid":"%d",', $duplicate);
+    $search = sprintf(',"fid":"%d",', $duplicate);
     $replace = sprintf(',"fid":"%d",', $original);
     foreach ($field_info['search_columns'] as $column) {
         $this->findUsagesByFieldColumn($field_info, $column, FALSE, $search, $replace, $duplicate);
