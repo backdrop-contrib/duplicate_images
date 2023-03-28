@@ -97,9 +97,10 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
     $options = array(
       'none' => 'None',
     );
-    $duplicate_images = (!empty($form_state['duplicate_images'])) ? $form_state['duplicate_images'] : array();
+    $duplicate_images = (!empty($_SESSION['duplicate_images']['duplicate_images'])) ? $_SESSION['duplicate_images']['duplicate_images'] : array();
     foreach ($duplicate_images as $duplicate => &$original) {
-      $original = "$duplicate: $original";
+      $_SESSION['duplicate_images']['duplicate_images_mapping'][$duplicate] = $original;
+      $original = "$duplicate: <em>$original</em>";
     }
     $form['results']['duplicate_images'] = array(
       '#type' => 'checkboxes',
@@ -109,9 +110,9 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
       '#description' => t('These are the duplicates found.'),
     );
 
-    $thumbnail_style = !empty($form_state['thumbnail_style']) ? $form_state['thumbnail_style'] : 'thumbnail';
-    $large_style = $form_state['large_style'];
-    $suspicious_images = (!empty($form_state['suspicious_images'])) ? $form_state['suspicious_images'] : array();
+    $thumbnail_style = !empty($_SESSION['duplicate_images']['thumbnail_style']) ? $_SESSION['duplicate_images']['thumbnail_style'] : 'thumbnail';
+    $large_style = $_SESSION['duplicate_images']['large_style'];
+    $suspicious_images = (!empty($_SESSION['duplicate_images']['suspicious_images'])) ? $_SESSION['duplicate_images']['suspicious_images'] : array();
     $options = array(
       'none' => 'None',
     );
@@ -182,7 +183,7 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
       '#title' => t('Image styles to check for in text field_names'),
       '#options' => $options,
       '#default_value' => array_keys($options),
-      '#description' => t('Define what image style URIs to check for when searching text field_names. Normally, all image styles should be searched for. But if you are sure that some image styles are only used in image field formatters and are never used in (long) text field_names, you may speed up this phase by deselecting that image style. Looking for image derivative usages involves itok token generation and 2 additional queries per style per field instance.'),
+      '#description' => t('Define what image style URIs to check for when searching text field_names. Normally, all image styles should be searched for. But if you are sure that some image styles are only used in image field formatters and are never used in (long) text field_names, you may speed up this phase by deselecting that image style. Looking for image derivative usages involves additional queries.'),
     );
 
     return $form;
@@ -192,22 +193,25 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
    * {@inheritdoc}
    */
   public function submit(array $form, array &$form_state) {
-    parent::submit($form, $form_state);
+    $save = $_POST;
+    unset($save['form_build_id']);
+    unset($save['form_token']);
+    unset($save['form_id']);
+    unset($save['op']);
+    $_SESSION['duplicate_images'] = array_merge($_SESSION['duplicate_images'], $save);
+    $_SESSION['duplicate_images']['selected_duplicate_images'] = array_filter($_SESSION['duplicate_images']['duplicate_images']);
+    $_SESSION['duplicate_images']['selected_suspicious_images'] = array_filter($_SESSION['duplicate_images']['suspicious_images']);
 
-    $form_state['selected_duplicate_images'] = array_filter($form_state['values']['duplicate_images']);
-    $form_state['selected_suspicious_images'] = array_filter($form_state['values']['suspicious_images']);
-
-    $duplicate_images = array_intersect_key($form_state['duplicate_images'], array_fill_keys($form_state['selected_duplicate_images'], 1));
-    $suspicious_images = array_intersect_key($form_state['suspicious_images'], array_fill_keys($form_state['selected_suspicious_images'], 1));
-    $managed_files = count(array_filter($form_state['values']['managed_files'])) === 1;
-    $fields_uri = array_filter($form_state['values']['fields_uri']);
-    $fields_media_tag = array_filter($form_state['values']['fields_media_tag']);
-    $image_styles = array_filter($form_state['values']['image_styles']);
-
+    $duplicate_images = array_intersect_key($_SESSION['duplicate_images']['duplicate_images_mapping'], array_fill_keys($_SESSION['duplicate_images']['selected_duplicate_images'], 1));
+    $suspicious_images = array_intersect_key($_SESSION['duplicate_images']['suspicious_images'], array_fill_keys($_SESSION['duplicate_images']['selected_suspicious_images'], 1));
+    $managed_files = count(array_filter($_SESSION['duplicate_images']['managed_files'])) === 1;
+    $fields_uri = array_filter($_SESSION['duplicate_images']['fields_uri']);
+    $fields_media_tag = (!empty($_SESSION['duplicate_images']['fields_media_tag'])) ? array_filter($_SESSION['duplicate_images']['fields_media_tag']) : array();
+    $image_styles = array_filter($_SESSION['duplicate_images']['image_styles']);
     $results = $this->exec($duplicate_images, $suspicious_images, $managed_files, $fields_uri, $fields_media_tag, $image_styles);
-    $form_state['entity_update_instructions'] = $results[0];
-    $form_state['duplicate_references'] = $results[1];
-    $form_state['duplicate_managed_files'] = $results[2];
+    $_SESSION['duplicate_images']['entity_update_instructions'] = $results[0];
+    $_SESSION['duplicate_images']['duplicate_references'] = $results[1];
+    $_SESSION['duplicate_images']['duplicate_managed_files'] = $results[2];
   }
 
   /**
@@ -282,7 +286,6 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
     foreach ($suspicious_images as $duplicate => $duplicate_info) {
       $this->findUsages($duplicate, $duplicate_info['original'], $managed_files, $field_infos_uri, $field_infos_media_tag, $image_styles);
     }
-
     return array($this->updateInstructions, $this->duplicateReferences, $this->duplicateManagedFiles);
   }
 
@@ -495,24 +498,12 @@ class DuplicateImagesUsages extends DuplicateImagesBaseForm {
       // Using the insert module (or for that matter any module that inserts
       // img or link tags in text), the reference may also be to a
       // derivative image of the duplicate. This will have the form:
-      // {stream_base_url}/styles/{style_name}/scheme/path[?itok={token}].
-      // The optional itok token depends on:
-      // - the file name: we have to replace any token value as well.
-      // - the style name: we have to know the style name to be able to
-      //   compute the new token.
-      // So we search for all styles separately so that we can compute the
-      // token value to replace.
+      // {stream_base_url}/styles/{style_name}/scheme/path.
       if ($is_image) {
         foreach ($image_styles as $style_name) {
           $duplicate_style_uri = $base_url . 'styles/' . $style_name . '/' . $scheme . '/' . $duplicate_target;
           $original_style_uri = $base_url . 'styles/' . $style_name . '/' . $scheme . '/' . $original_target;
 
-          $itok_duplicate = image_style_path_token($style_name, $duplicate);
-          $itok_original = image_style_path_token($style_name, $original);
-          $duplicate_style_itok_uri = $duplicate_style_uri . '?' . IMAGE_DERIVATIVE_TOKEN . '=' . $itok_duplicate;
-          $original_style_itok_uri = $original_style_uri . '?' . IMAGE_DERIVATIVE_TOKEN . '=' . $itok_original;
-
-          $this->findUsagesByFieldColumn($field_info, $column, FALSE, $duplicate_style_itok_uri, $original_style_itok_uri, $duplicate);
           $this->findUsagesByFieldColumn($field_info, $column, FALSE, $duplicate_style_uri, $original_style_uri, $duplicate);
         }
       }

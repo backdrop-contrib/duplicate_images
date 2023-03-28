@@ -43,9 +43,9 @@ class DuplicateImagesUpdate extends DuplicateImagesBaseForm {
       '#tree' => FALSE,
     );
 
-    $update_instructions = $form_state['entity_update_instructions'];
-    $duplicate_references = $form_state['duplicate_references'];
-    $duplicate_managed_files = $form_state['duplicate_managed_files'];
+    $update_instructions = $_SESSION['duplicate_images']['entity_update_instructions'];
+    $duplicate_references = $_SESSION['duplicate_images']['duplicate_references'];
+    $duplicate_managed_files = $_SESSION['duplicate_images']['duplicate_managed_files'];
     $updates = array();
     $fields_label = t('field(s):');
     $duplicates_label = t('duplicate(s) referred:');
@@ -79,22 +79,25 @@ class DuplicateImagesUpdate extends DuplicateImagesBaseForm {
    * {@inheritdoc}
    */
   public function submit(array $form, array &$form_state) {
-    parent::submit($form, $form_state);
+    $save = $_POST;
+    unset($save['form_build_id']);
+    unset($save['form_token']);
+    unset($save['form_id']);
+    unset($save['op']);
+    $_SESSION['duplicate_images'] = array_merge($_SESSION['duplicate_images'], $save);
 
-    $form_state['selected_entities_to_update'] = array_filter($form_state['values']['entities_to_update']);
-    $entity_update_instructions = $form_state['entity_update_instructions'];
+    $_SESSION['duplicate_images']['selected_entities_to_update'] = (!empty($_SESSION['duplicate_images']['entities_to_update'])) ? array_filter($_SESSION['duplicate_images']['entities_to_update']) : array();
+    $entity_update_instructions = $_SESSION['duplicate_images']['entity_update_instructions'];
     $entities_to_update = array();
     foreach ($entity_update_instructions as $entity_type => $entities) {
       foreach ($entities as $entity_id => $entity) {
-        if (array_key_exists("$entity_type $entity_id", $form_state['selected_entities_to_update'])) {
+        if (array_key_exists("$entity_type $entity_id", $_SESSION['duplicate_images']['selected_entities_to_update'])) {
           $entities_to_update[$entity_type][$entity_id] = $entity;
-        }
-        else {
-
         }
       }
     }
-    $form_state['updates_performed'] = $this->exec($entities_to_update);
+    $updates_performed = $this->exec($entities_to_update);
+    $_SESSION['duplicate_images']['updates_performed'] = $updates_performed;
   }
 
   /**
@@ -120,7 +123,7 @@ class DuplicateImagesUpdate extends DuplicateImagesBaseForm {
     $result = array();
 
     foreach ($entities_to_update as $entity_type => $entity_updates) {
-      $entities = entity_load($entity_type, array_keys($entity_updates));
+      $entities = entity_load_multiple($entity_type, array_keys($entity_updates));
       foreach ($entity_updates as $entity_id => $field_updates) {
         $result["$entity_type $entity_id"] = $this->updateEntity($entity_type, $entities[$entity_id], $field_updates);
 
@@ -168,7 +171,7 @@ class DuplicateImagesUpdate extends DuplicateImagesBaseForm {
         $entity->{$field_name} = $field_update;
       }
     }
-    return entity_save($entity_type, $entity) !== FALSE;
+    return $entity->save() !== FALSE;
   }
 
 }

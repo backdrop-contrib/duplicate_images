@@ -63,7 +63,6 @@ abstract class DuplicateImagesBaseForm {
     // Common settings and elements: task list +  help.
     $form_state['cache'] = TRUE;
     $form['#action'] = url(current_path(), array('query' => array('op' => $this->getNext($this->step))));
-
     $form['progress'] = array(
       '#type' => 'markup',
       '#markup' => $this->getProgress(),
@@ -111,8 +110,9 @@ abstract class DuplicateImagesBaseForm {
    * @param array $form_state
    *   Form state.
    */
-  public function submit(/** @noinspection PhpUnusedParameterInspection */ array $form, array &$form_state) {
+  public function submit(array $form, array &$form_state) {
     $form_state['rebuild'] = TRUE;
+    $_SESSION['duplicate_images'] = array();
   }
 
   /**
@@ -136,14 +136,13 @@ abstract class DuplicateImagesBaseForm {
     $info = image_get_info($file_name);
     if (!empty($info['extension'])) {
       $result = theme('image_style',
-        array('style_name' => $thumbnail_style, 'path' => $file_name) + $info);
+        array('style_name' => $thumbnail_style, 'uri' => $file_name) + $info);
     }
     else {
       $file = new File();
       $file->filemime = file_get_mimetype($file_name);
       $result = theme('file_icon', array('file' => $file, 'alt' => ''));
     }
-
     if (!empty($large_style)) {
       if ($large_style === 'full image' || empty($info['extension'])) {
         $link_path = file_create_url($file_name);
@@ -169,7 +168,7 @@ abstract class DuplicateImagesBaseForm {
    *   Current step based on the request query.
    */
   static public function getStep() {
-    return isset($_GET['op']) ? $_GET['op'] : 'intro';
+    return isset($_GET['op']) ? check_plain($_GET['op']) : 'intro';
   }
 
   /**
@@ -218,7 +217,7 @@ abstract class DuplicateImagesBaseForm {
   static public function getNext($step) {
     $steps = array_keys(static::getSteps());
     $index = array_search($step, $steps);
-    return $index !== FALSE && $index < count($steps) - 1 ? $steps[++$index] : '';
+    return ($index !== FALSE && $index < count($steps) - 1) ? $steps[++$index] : '';
   }
 
 }

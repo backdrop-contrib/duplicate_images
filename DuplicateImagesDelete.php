@@ -45,16 +45,15 @@ class DuplicateImagesDelete extends DuplicateImagesBaseForm {
     );
 
     // Create a list of possible file deletes.
-    $file_deletes = array_keys($form_state['selected_duplicate_images']) + array_keys($form_state['selected_suspicious_images']);
-    $file_deletes = array_combine($file_deletes, $file_deletes);
-
+    $file_deletes = array_keys($_SESSION['duplicate_images']['selected_duplicate_images']) + array_keys($_SESSION['duplicate_images']['selected_suspicious_images']);
+    // $file_deletes = array_combine($file_deletes, $file_deletes);
     // Filter out when entities referring to it where not updated.
-    foreach ($form_state['duplicate_references'] as $entity_type => $entities) {
+    foreach ($_SESSION['duplicate_images']['duplicate_references'] as $entity_type => $entities) {
       foreach ($entities as $entity_id => $duplicates) {
         // An entity was not updated if it was not selected or the update
         // failed.
-        $selected = array_key_exists("$entity_type $entity_id", $form_state['selected_entities_to_update']);
-        $success = isset($form_state['updates_performed']["$entity_type $entity_id"]) && $form_state['updates_performed']["$entity_type $entity_id"];
+        $selected = (!empty($_SESSION['duplicate_images']['selected_entities_to_update'])) ? array_key_exists("$entity_type $entity_id", $_SESSION['duplicate_images']['selected_entities_to_update']) : FALSE;
+        $success = (!empty($_SESSION['duplicate_images']['updates_performed']["$entity_type $entity_id"]));
         if (!$selected || !$success) {
           // Remove the duplicates this entity was referring to.
           $file_deletes = array_diff_key($file_deletes, $duplicates);
@@ -63,17 +62,17 @@ class DuplicateImagesDelete extends DuplicateImagesBaseForm {
     }
 
     // $managed_file_deletes is a list of fid => duplicate pairs.
-    $managed_file_deletes = $form_state['duplicate_managed_files'];
+    $managed_file_deletes = $_SESSION['duplicate_images']['duplicate_managed_files'];
     // We only delete the managed file if we may delete the image as well.
     $managed_file_deletes = array_intersect($managed_file_deletes, $file_deletes);
     // If we remove a managed file, the file will also be deleted by
     // file_delete(), so we do not have to do that ourselves anymore.
     $file_deletes = array_diff($file_deletes, $managed_file_deletes);
 
-    $duplicate_images = $form_state['duplicate_images'];
-    $suspicious_images = $form_state['suspicious_images'];
-    $thumbnail_style = $form_state['thumbnail_style'];
-    $large_style = $form_state['large_style'];
+    $duplicate_images = $_SESSION['duplicate_images']['duplicate_images'];
+    $suspicious_images = $_SESSION['duplicate_images']['suspicious_images'];
+    $thumbnail_style = $_SESSION['duplicate_images']['thumbnail_style'];
+    $large_style = $_SESSION['duplicate_images']['large_style'];
     $i = 1;
     foreach ($managed_file_deletes as &$duplicate) {
       $thumbs = '';
@@ -132,7 +131,7 @@ class DuplicateImagesDelete extends DuplicateImagesBaseForm {
       '#title' => t('Files (@count)', array('@count' => count($file_deletes))),
       '#options' => $file_deletes,
       '#default_value' => array_keys($file_deletes),
-      '#description' => t('These are the non managed files that can be deleted.'),
+      '#description' => t('These are the non-managed files that can be deleted.'),
     );
 
     return $form;
@@ -142,12 +141,17 @@ class DuplicateImagesDelete extends DuplicateImagesBaseForm {
    * {@inheritdoc}
    */
   public function submit(array $form, array &$form_state) {
-    parent::submit($form, $form_state);
+    $save = $_POST;
+    unset($save['form_build_id']);
+    unset($save['form_token']);
+    unset($save['form_id']);
+    unset($save['op']);
+    $_SESSION['duplicate_images'] = array_merge($_SESSION['duplicate_images'], $save);
+    $selected_managed_file_deletes = array_filter($_SESSION['duplicate_images']['managed_file_deletes']);
+    $selected_file_deletes = array_filter($_SESSION['duplicate_images']['file_deletes']);
 
-    $form_state['selected_managed_file_deletes'] = array_filter($form_state['values']['managed_file_deletes']);
-    $form_state['selected_file_deletes'] = array_filter($form_state['values']['file_deletes']);
-
-    $form_state['delete_results'] = $this->exec($form_state['selected_managed_file_deletes'], $form_state['selected_file_deletes']);
+    $_SESSION['duplicate_images']['delete_results'] = $this->exec($selected_managed_file_deletes, $selected_file_deletes);
+    $_SESSION['duplicate_images'] = $_SESSION['duplicate_images'];
   }
 
   /**

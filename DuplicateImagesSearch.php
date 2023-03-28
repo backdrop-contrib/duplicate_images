@@ -87,11 +87,13 @@ class DuplicateImagesSearch extends DuplicateImagesBaseForm {
       '#description' => t('Indicate whether file duplicates will also be tested for equality by using <a href="http://php.net/manual/en/function.md5-file.php">md5_file()</a> as well. This will prevent false positives but might slow down the process when there are many big files to check.'),
     );
     $form['options']['max_duplicates'] = array(
-      '#type' => 'textfield',
+      '#type' => 'number',
       '#title' => t('Maximum number of duplicate images to process'),
-      '#default_value' => '',
+      '#default_value' => 5,
       '#description' => t('If your system does not allow to reset the time limit (max_execution_time) or the maximum number of fields on a post (max_input_vars), or you just hate long page waits, you can limit the number of duplicate images that will be searched for and processed. Leave empty to process all duplicates at once.'),
       '#size' => 4,
+      '#min' => 1,
+      '#step' => 1,
     );
 
     $image_styles = array();
@@ -139,24 +141,26 @@ class DuplicateImagesSearch extends DuplicateImagesBaseForm {
    * {@inheritdoc}
    */
   public function submit(array $form, array &$form_state) {
-    parent::submit($form, $form_state);
+    $save = $_POST;
+    unset($save['form_build_id']);
+    unset($save['form_token']);
+    unset($save['form_id']);
+    unset($save['op']);
+    $_SESSION['duplicate_images'] = array_merge($_SESSION['duplicate_images'], $save);
 
-    $file_systems = array_filter($form_state['values']['file_systems']);
-    $excluded_sub_folders = explode(',',
-      $form_state['values']['excluded_sub_folders']);
+    $file_systems = array_filter($_SESSION['duplicate_images']['file_systems']);
+    $excluded_sub_folders = explode(',', $_SESSION['duplicate_images']['excluded_sub_folders']);
     array_walk(
       $excluded_sub_folders,
       function (&$item) {
         $item = trim($item);
       });
-    $use_md5 = $form_state['values']['use_md5'] == 1;
-    $max_duplicates = !empty($form_state['values']['max_duplicates']) ? (int) $form_state['values']['max_duplicates'] : NULL;
+    $use_md5 = ($_SESSION['duplicate_images']['use_md5'] == 1);
+    $max_duplicates = !empty($_SESSION['duplicate_images']['max_duplicates']) ? (int) $_SESSION['duplicate_images']['max_duplicates'] : NULL;
 
     $results = $this->exec($file_systems, $excluded_sub_folders, $use_md5, $max_duplicates);
-    $form_state['duplicate_images'] = $results[0];
-    $form_state['suspicious_images'] = $results[1];
-    $form_state['thumbnail_style'] = $form_state['values']['thumbnail_style'];
-    $form_state['large_style'] = $form_state['values']['large_style'];
+    $_SESSION['duplicate_images']['duplicate_images'] = $results[0];
+    $_SESSION['duplicate_images']['suspicious_images'] = $results[1];
   }
 
   /**
@@ -232,7 +236,6 @@ class DuplicateImagesSearch extends DuplicateImagesBaseForm {
 
     // Group the list of files by possible duplicates.
     $duplicates = $this->groupDuplicatesByPattern($files);
-
     // And add them if their contents is indeed the same.
     foreach ($duplicates as $base_name => $file_group) {
       // A group of files can only contain duplicates if it contains at least 2

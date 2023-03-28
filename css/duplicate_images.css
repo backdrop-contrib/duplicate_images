@@ -1,0 +1,13 @@
+.duplicate-images-get-form ol.task-list li {
+  display: inline-block;
+}
+
+.duplicate-images-get-form ol.task-list li.done,
+.duplicate-images-get-form ol.task-list li.active {
+  background-color: #efefef;
+}
+
+.duplicate-images-get-form ol.task-list li.active::after {
+  border-left-color: #efefef;
+}
+/*# sourceMappingURL=duplicate_images.css.map */

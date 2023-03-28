@@ -23,13 +23,11 @@ class DuplicateImagesIntro extends DuplicateImagesBaseForm {
    * {@inheritdoc}
    */
   protected function getHelp() {
+    $msg = t('Before you run this wizard, <strong>make sure you have a backup of your database.</strong>');
     if (module_exists('backup_migrate')) {
-      $msg = t('Before you run this wizard, <strong>make sure you have a backup of your database.</strong> Use !backup_migrate to create that backup now.',
+      $msg .= ' ' . t('Use !backup_migrate to create that backup now.',
         array('!backup_migrate' => l(t('Backup and Migrate'), 'admin/config/system/backup_migrate'))
       );
-    }
-    else {
-      $msg = t('Before you run this wizard, <strong>make sure you have a backup of your database.</strong>');
     }
     backdrop_set_message($msg, 'warning');
 

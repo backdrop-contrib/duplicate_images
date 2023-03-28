@@ -5,6 +5,8 @@ type = module
 configure = admin/config/media/duplicate-images
 package = Media
 
+stylesheets[all][] = css/duplicate_images.css
+
 dependencies[] = file
 dependencies[] = image
 dependencies[] = entity

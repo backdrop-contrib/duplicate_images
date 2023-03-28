@@ -23,8 +23,11 @@ class DuplicateImagesFinished extends DuplicateImagesBaseForm {
    * {@inheritdoc}
    */
   protected function getHelp() {
-    return t('The process has finished. You can now disable this module. BTW, this may be a good time to install the !link module which allows you to reuse already uploaded images.',
-      array('!link' => l(t('FileField Sources'), 'https://www.drupal.org/project/filefield_sources', array('external' => TRUE))));
+    return t('The process has completed. You can !runitagain, or if you are finished you can disable this module. You can prevent duplicates going forward by using the built-in image library or installing !link to reuse existing files and images.',
+      array(
+        '!link' => l(t('FileField Sources'), 'https://www.backdropcms.org/project/filefield_sources', array('external' => TRUE)),
+        '!runitagain' => l(t('run it again'), 'admin/config/media/duplicate-images'),
+      ));
   }
 
   /**
@@ -32,8 +35,7 @@ class DuplicateImagesFinished extends DuplicateImagesBaseForm {
    */
   public function fields(array $form, array &$form_state) {
     $form = parent::fields($form, $form_state);
-
-    $delete_results = $form_state['delete_results'];
+    $delete_results = $_SESSION['duplicate_images']['delete_results'];
     $success = array();
     $failures = array();
     foreach ($delete_results as $file_name => $delete_result) {
@@ -74,7 +76,7 @@ class DuplicateImagesFinished extends DuplicateImagesBaseForm {
           )),
       );
     }
-
+    unset($_SESSION['duplicate_images']);
     return $form;
   }
 
