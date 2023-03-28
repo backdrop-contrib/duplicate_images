@@ -1,19 +1,19 @@
-DUPLICATE IMAGES
+Duplicate Images
 ================
 
-The duplicate images module allows you to find and remove duplicate images and
-other documents on the public or private file system.
+The **Duplicate Images** module allows you to find and remove duplicate images
+and other documents on the public or private file system.
 
 Problem
 -------
 If editors want to add images or documents to their content, they can do so by
-uploading these from their local computer. If the core image library search has
-not been used when an image is needed more than once, or in the case of a site
-that has been upgraded from Drupal 7, it is possible to end up with multiple
-copies of the same image. This may lead to a messy image library interface,
-bloated file listings, longer backup times, larger backup sizes, unreliable
-usage stats, unnecessary image derivative creation while an equal image
-derivative could have been served directly.
+uploading these from their local computer. If the core Backdrop image library
+search has not been used when an image is needed more than once, or in the case
+of a site that has been upgraded from Drupal 7, it is possible to end up with
+multiple copies of the same image. This may lead to a messy image library
+interface, bloated file listings, longer backup times, larger backup sizes,
+unreliable usage stats, unnecessary image derivative creation while an equal
+image derivative could have been served directly.
 
 Solution
 --------
